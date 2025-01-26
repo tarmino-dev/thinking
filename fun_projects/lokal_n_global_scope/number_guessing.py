@@ -13,20 +13,18 @@ Choose a difficulty. Type 'easy' or 'hard': """)
 difficulty_mapping = {"easy": 10, "hard": 5}
 attempts_number = difficulty_mapping[difficulty]
 
-def give_attempt(result):
-    global attempts_number
-    attempts_number -= 1
-    if attempts_number > 0:
-        print(f"""Too {result}.\nGuess again.""")
+def give_attempt(comparison_result, attempts):
+    attempts -= 1
+    if attempts > 0:
+        print(f"""Too {comparison_result}.\nGuess again.""")
+    return attempts
 
 while attempts_number > 0:
     user_guess = int(input(f"""You have {attempts_number} attempts remaining to guess the number.\nMake a guess: """))
     if number > user_guess:
-        give_attempt("low")
-        
+        attempts_number = give_attempt("low", attempts_number)
     elif number < user_guess:
-        give_attempt("high")
-        
+        attempts_number = give_attempt("high", attempts_number)
     else:
         print(f"You got it! The answer was {number}.")
         break
