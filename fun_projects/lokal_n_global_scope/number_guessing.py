@@ -1,12 +1,19 @@
 from art import logo
 from random import randint
-from collections import defaultdict
+
+def greeting():
+    """Greets the user."""
+    print(logo)
+    print("Welcome to the Number Guessing Game!")
 
 def get_difficulty():
     """Asks user for the difficulty level"""
-    difficulty_mapping = defaultdict(lambda: 5, {"easy": 10, "hard": 5})
-    difficulty = input("Choose a difficulty. Type 'easy' or 'hard': ").lower()
-    return difficulty_mapping[difficulty]
+    difficulty_mapping = {"easy": 10, "hard": 5}
+    while True:
+        difficulty = input("Choose a difficulty. Type 'easy' or 'hard': ").strip().lower()
+        if difficulty in difficulty_mapping:
+            return difficulty_mapping[difficulty]
+        print("Invalid choice. Please type 'easy' or 'hard'.")
 
 def get_user_guess():
     """Asks user for a guess."""
@@ -18,37 +25,30 @@ def get_user_guess():
 
 def play_game():
     """Basic game logic."""
-    print(logo)
-    print("Welcome to the Number Guessing Game!")
-    print("I'm thinking of a number between 1 and 100.")
-    number = randint(1, 100)
-    attempts = get_difficulty()
-    print(f"DEBUG. number: {number}")
-
-    while attempts > 0:
-        print(f"You have {attempts} attempts remaining to guess the number.")
-        user_guess = get_user_guess()
-        if number > user_guess:
+    while True:
+        print("\nI'm thinking of a number between 1 and 100.")
+        number = randint(1, 100)
+        attempts = get_difficulty()
+        while attempts > 0:
             if attempts == 1:
-                print("Too low.")
+                print(f"Last attempt! Make it count!")
             else:
-                print(f"Too low.\nGuess again.")
-        elif number < user_guess:
-            if attempts == 1:
-                print("Too high.")
+                print(f"You have {attempts} attempts remaining to guess the number.")
+            user_guess = get_user_guess()
+            if number > user_guess:
+                print("Too low." if attempts == 1 else "Too low.\nGuess again.")
+            elif number < user_guess:
+                print("Too high." if attempts == 1 else "Too high.\nGuess again.")
             else:
-                print(f"Too high.\nGuess again.")
-        else:
-            print(f"You got it! The answer was {number}.")
-            return
-        attempts -= 1
-    print("You've run out of guesses. Restart the game to play again.")
-
-
-    print("-------------DEBUGGING-------------")
-    print(f"DEBUG. number: {number}")
-    print(f"DEBUG. attempts: {attempts}")
-    print(f"DEBUG. user_guess: {user_guess}")
+                print(f"You got it! The answer was {number}.")
+                break
+            attempts -= 1
+        print(f"The number was {number}.\nYou've run out of guesses. Game over.") if attempts == 0 else print("Great job!")
+        play_again = input("Want to play again? (yes/no): ")
+        if play_again.strip().lower() not in ("yes", "y", "да"):
+            print("Thanks for playing! Goodbye!")
+            break
 
 if __name__ == "__main__":
+    greeting()
     play_game()
