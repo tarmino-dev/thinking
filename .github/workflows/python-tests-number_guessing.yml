@@ -25,4 +25,4 @@ jobs:
         run: pip install -r fun_projects/number_guessing/requirements.txt
 
       - name: Run tests
-        run: pytest fun_projects/number_guessing/tests/
+        run: pytest
