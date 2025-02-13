@@ -1,45 +1,7 @@
 from art import logo
+from data import MENU, RESOURCES, COINS
 
 print(logo)
-
-MENU = {
-    "espresso": {
-        "ingredients": {
-            "water": 50,
-            "coffee": 18,
-        },
-        "cost": 1.5,
-    },
-    "latte": {
-        "ingredients": {
-            "water": 200,
-            "milk": 150,
-            "coffee": 24,
-        },
-        "cost": 2.5,
-    },
-    "cappuccino": {
-        "ingredients": {
-            "water": 250,
-            "milk": 100,
-            "coffee": 24,
-        },
-        "cost": 3.0,
-    }
-}
-
-resources = {
-    "water": [300, "ml"],
-    "milk": [200, "ml"],
-    "coffee": [100, "g"],
-}
-
-coins = {
-    "quarter": 0.25,
-    "dime": 0.10,
-    "nickle": 0.05,
-    "pennie": 0.01,
-}
 
 def prompt():
     while True:
@@ -49,7 +11,7 @@ def prompt():
         print("Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
 
 def print_report(money):
-    for k, v in resources.items():
+    for k, v in RESOURCES.items():
         print(f"{k.capitalize()}: {v[0]}{v[1]}")
     print(f"Money: ${money}")
 
@@ -65,14 +27,14 @@ def start_coffee_machine():
             continue
         enough_ingredients = True
         for item, amount in MENU[order]["ingredients"].items():
-            if resources[item][0] < amount:
+            if RESOURCES[item][0] < amount:
                 print(f"Sorry, there is not enough {item}.")
                 enough_ingredients = False
         if not enough_ingredients:
             continue
         print("Please insert coins.")
         total_inserted = 0
-        for coin, value in coins.items():
+        for coin, value in COINS.items():
             total_inserted += int(input(f"How many {coin}s are you inserting? ")) * value
         total_inserted = float("{:.2f}".format(total_inserted))
         change = 0
@@ -89,7 +51,7 @@ def start_coffee_machine():
             money -= change
             print(f"Here is ${change} in change.")
         for item, amount in MENU[order]["ingredients"].items():
-            resources[item][0] -= amount
+            RESOURCES[item][0] -= amount
         print(f"Here is your {order}. Enjoy!")
 
 if __name__ == "__main__":
