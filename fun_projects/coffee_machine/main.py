@@ -1,19 +1,40 @@
 from art import logo
 from data import MENU, RESOURCES, COINS
 import copy
+import json
+import os
 
 class CoffeeMachine:
-    """Coffee machine simulator."""
+    """A class representing a coffee machine simulator with persistent storage."""
+
+    DATA_FILE = "fun_projects/coffee_machine/resources.json"
+
     def __init__(self):
-        """Initialize the coffee machine with resources and profit."""
-        self.resources = copy.deepcopy(RESOURCES)
-        self.profit = 0
+        """Initialize the coffee machine with resources and profit, loading from a file if available."""
+        self.resources, self.profit = self.load_resources()
+
+    def load_resources(self):
+        """Loads resources and profit from a JSON file if it exists; otherwise, uses default values."""
+        if os.path.exists(self.DATA_FILE):
+            with open(self.DATA_FILE, "r") as file:
+                data = json.load(file)
+                return data["resources"], data.get("profit", 0)
+        return copy.deepcopy(RESOURCES), 0
+    
+    def save_resources(self):
+        """Saves the current resources and profit to a JSON file."""
+        data = {
+            "resources": self.resources,
+            "profit": self.profit
+        }
+        with open(self.DATA_FILE, "w") as file:
+            json.dump(data, file, indent=4)
 
     def print_report(self):
         """Prints the current status of resources and profit."""
         print("\n=== Coffee Machine Report ===")
-        for ingredient, (amount, unit) in self.resources.items():
-            print(f"{ingredient.capitalize()}: {amount}{unit}")
+        for ingredient, data in self.resources.items():
+            print(f"{ingredient.capitalize()}: {data[0]}{data[1]}")
         print(f"Money: ${self.profit:.2f}\n")
 
     def is_enough_resources(self, order):
@@ -58,6 +79,7 @@ class CoffeeMachine:
         """Deducts the required ingredients and serves the coffee."""
         for ingredient, amount in MENU[order]["ingredients"].items():
             self.resources[ingredient][0] -= amount
+        self.save_resources()
         print(f"Here is your {order}. Enjoy!")
 
     def start(self):
@@ -66,6 +88,8 @@ class CoffeeMachine:
         while True:
             order = input("What would you like? (espresso/latte/cappuccino): ").lower()
             if order == "off":
+                print("Saving resources and shutting down...")
+                self.save_resources()
                 print("The coffee machine is off. Bye!")
                 break
             if order == "report":
@@ -81,6 +105,7 @@ class CoffeeMachine:
             if enough_money:
                 self.make_coffee(order)
                 self.profit += income
+                self.save_resources()
 
 if __name__ == "__main__":
     coffee_machine = CoffeeMachine()
