@@ -7,7 +7,7 @@ import os
 class CoffeeMachine:
     """A class representing a coffee machine simulator with persistent storage."""
 
-    DATA_FILE = "fun_projects/coffee_machine/resources.json"
+    DATA_FILE = "resources.json"
 
     def __init__(self):
         """Initialize the coffee machine with resources and profit, loading from a file if available."""
