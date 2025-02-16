@@ -45,6 +45,34 @@ class CoffeeMachine:
             print(f"{ingredient.capitalize()}: {data[0]}{data[1]}")
         print(f"Money: ${self.profit:.2f}\n")
 
+    def refill_resources(self):
+        """Allows the user to manually refill water, milk, or coffee."""
+        print("\n=== Refill Resources ===")
+        print("Available resources to refill: water, milk, coffee")
+        while True:
+            resource = input("Which resource would you like to refill? (type 'exit' to cancel): ").lower()
+            if resource == "exit":
+                print("Exiting refill.")
+                logging.info("Refill operation ended.")
+                break
+            if resource not in self.resources:
+                print("Invalid resource. Please type 'water', 'milk', or 'coffee'.")
+                continue
+            while True:
+                try:
+                    amount = int(input(f"How much {resource} would you like to add? (current: {self.resources[resource][0]}{self.resources[resource][1]}): "))
+                    if amount < 0:
+                        print("Please enter a positive number.")
+                        continue
+                    break
+                except ValueError:
+                    print("Invalid input. Please enter a valid number.")
+
+            self.resources[resource][0] += amount
+            self.save_resources()
+            logging.info(f"Refilled {amount}{self.resources[resource][1]} of {resource}")
+            print(f"{amount}{self.resources[resource][1]} of {resource} added successfully!")
+
     def is_enough_resources(self, order):
         """Checks if there are enough resources for the selected drink."""
         enough_resources = True
@@ -99,7 +127,7 @@ class CoffeeMachine:
         logging.info("Coffee machine started.")
         print(logo)
         while True:
-            order = input("What would you like? (espresso/latte/cappuccino): ").lower()
+            order = input("What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
             if order == "off":
                 logging.info("Coffee machine turned off.")
                 print("Saving resources and shutting down...")
@@ -108,6 +136,9 @@ class CoffeeMachine:
                 break
             if order == "report":
                 self.print_report()
+                continue
+            if order == "refill":
+                self.refill_resources()
                 continue
             if order not in MENU:
                 print("Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
