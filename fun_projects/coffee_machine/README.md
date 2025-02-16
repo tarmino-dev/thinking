@@ -1,5 +1,5 @@
-# Coffee Machine
-A simple Python program that simulates a coffee machine. It offers users various drinks, accepts different coins, and provides change if excess money is inserted. The software can report the current state of resources and be turned off when needed.
+# Coffee Machine Simulator
+A Python console program that simulates a coffee vending machine.
 
 # How to Run
 1. Clone the repository:
@@ -20,13 +20,18 @@ python3 main.py
 
 # Features
 - Prompting the user to select a drink
+- Serves espresso, latte, and cappuccino
 - Checking if resources are sufficient
-- Processing coin input
+- Allows users to refill resources (triggered by the "refill" command)
+- Accepts coins and returns change if necessary
 - Verifying successful transactions
-- Returning change if necessary
+- Returning change 
 - Dispensing coffee
 - Printing a report on the current state of resources and the profit (triggered by the "report" command)
+- Saves and loads resources using JSON
+- Logs all operations in a log file
 - Turning the coffee machine off (triggered by the "off" command)
+- Fully tested with pytest
 
 
 # Example Output
