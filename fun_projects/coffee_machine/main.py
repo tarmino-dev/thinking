@@ -1,5 +1,6 @@
 from art import logo
 from data import MENU, RESOURCES, COINS
+from prettytable import PrettyTable
 import copy
 import json
 import os
@@ -41,8 +42,13 @@ class CoffeeMachine:
     def print_report(self):
         """Prints the current status of resources and profit."""
         print("\n=== Coffee Machine Report ===")
+        report_table = PrettyTable()
+        report_table.field_names = ["Resource", "Amount"]
+        report_table.align = "l"
         for ingredient, data in self.resources.items():
-            print(f"{ingredient.capitalize()}: {data[0]}{data[1]}")
+            amount_unit = f"{data[0]} {data[1]}"
+            report_table.add_row([ingredient.capitalize(), amount_unit])
+        print(report_table)
         print(f"Money: ${self.profit:.2f}\n")
 
     def refill_resources(self):
