@@ -7,6 +7,13 @@ jack = Turtle()
 burt = Turtle()
 
 
+def random_color():
+    r = random.randint(0, 255)
+    g = random.randint(0, 255)
+    b = random.randint(0, 255)
+    return r, g, b
+
+
 def bill_go():
     """Bill draws a square."""
     for i in range(4):
@@ -28,9 +35,7 @@ def jack_go():
     colormode(255)
 
     def draw_polyhedron(number_of_edges):
-        color = random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255)
-        jack.pencolor(color)
+        jack.pencolor(random_color())
         for _ in range(number_of_edges):
             jack.forward(100)
             jack.right(360/number_of_edges)
@@ -41,12 +46,12 @@ def jack_go():
 def burt_go():
     """Burt draws a Random Walk"""
     burt.pensize(10)
+    burt.speed("fastest")
     colormode(255)
-    for _ in range(50):
-        color = random.randint(0, 255), random.randint(
-            0, 255), random.randint(0, 255)
-        burt.pencolor(color)
-        MOVES[random.choice(list(MOVES))](burt)
+    for _ in range(200):
+        burt.pencolor(random_color())
+        burt.setheading(random.choice(DIRECTIONS))
+        burt.forward(50)
 
 
 def nick_go():
@@ -54,28 +59,9 @@ def nick_go():
     pass
 
 
-def move_right(turtle):
-    turtle.right(90)
-    turtle.forward(50)
-
-
-def move_left(turtle):
-    turtle.left(90)
-    turtle.forward(50)
-
-
-def move_forward(turtle):
-    turtle.forward(50)
-
-
-def move_back(turtle):
-    turtle.back(50)
-
-
 TURTLES_FUNCTIONS = {"bill": bill_go, "john": john_go,
                      "jack": jack_go, "burt": burt_go, "nick": nick_go}
-MOVES = {"move_right": move_right, "move_left": move_left,
-         "move_forward": move_forward, "move_back": move_back}
+DIRECTIONS = [0, 90, 180, 270]
 
 
 def run_turtle(turtle):
