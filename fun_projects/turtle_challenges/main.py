@@ -1,9 +1,10 @@
-from turtle import Turtle, Screen, colormode, resetscreen
+from turtle import Turtle, Screen, colormode, resetscreen, pensize
 import random
 
 bill = Turtle()
 john = Turtle()
 jack = Turtle()
+burt = Turtle()
 
 
 def bill_go():
@@ -39,6 +40,13 @@ def jack_go():
 
 def burt_go():
     """Burt draws a Random Walk"""
+    burt.pensize(10)
+    colormode(255)
+    for _ in range(50):
+        color = random.randint(0, 255), random.randint(
+            0, 255), random.randint(0, 255)
+        burt.pencolor(color)
+        MOVES[random.choice(list(MOVES))](burt)
 
 
 def nick_go():
@@ -46,8 +54,28 @@ def nick_go():
     pass
 
 
+def move_right(turtle):
+    turtle.right(90)
+    turtle.forward(50)
+
+
+def move_left(turtle):
+    turtle.left(90)
+    turtle.forward(50)
+
+
+def move_forward(turtle):
+    turtle.forward(50)
+
+
+def move_back(turtle):
+    turtle.back(50)
+
+
 TURTLES_FUNCTIONS = {"bill": bill_go, "john": john_go,
                      "jack": jack_go, "burt": burt_go, "nick": nick_go}
+MOVES = {"move_right": move_right, "move_left": move_left,
+         "move_forward": move_forward, "move_back": move_back}
 
 
 def run_turtle(turtle):
@@ -58,7 +86,11 @@ while True:
     user_choice = input(
         "Choose your turtle (bill / john / jack / burt / nick) or type 'off' and close the window to exit: ")
     if user_choice == "off":
+        print("Exiting... Please close the canvas window.")
         break
+    if user_choice not in TURTLES_FUNCTIONS:
+        print("Invalid input. Type bill / john / jack / burt / nick")
+        continue
     resetscreen()
     run_turtle(user_choice)
 
