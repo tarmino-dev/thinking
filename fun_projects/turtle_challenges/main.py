@@ -5,6 +5,7 @@ bill = Turtle()
 john = Turtle()
 jack = Turtle()
 burt = Turtle()
+nick = Turtle()
 
 
 def random_color():
@@ -33,7 +34,6 @@ def john_go():
 def jack_go():
     """Jack draws 8 polyhedrons with the number of edges from 3 to 10"""
     colormode(255)
-
     def draw_polyhedron(number_of_edges):
         jack.pencolor(random_color())
         for _ in range(number_of_edges):
@@ -55,8 +55,15 @@ def burt_go():
 
 
 def nick_go():
-    """Nick """
-    pass
+    """Nick imitates spirograph"""
+    colormode(255)
+    nick.speed("fastest")
+    def draw_spirograph(size_of_gap):
+        for _ in range(int(360 / size_of_gap)):
+            nick.pencolor(random_color())
+            nick.circle(100)
+            nick.setheading(nick.heading() + size_of_gap) # Get the current heading and turn it by X degrees
+    draw_spirograph(5)
 
 
 TURTLES_FUNCTIONS = {"bill": bill_go, "john": john_go,
