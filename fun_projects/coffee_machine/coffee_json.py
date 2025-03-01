@@ -1,43 +1,37 @@
 from art import logo
-from data import MENU, COINS
+from data import MENU, RESOURCES, COINS
 from prettytable import PrettyTable
-from decimal import Decimal
-import config
+import copy
+import json
+import os
 import logging
-import pyodbc
 
 
-class CoffeeMachineDB:
-    """A class representing a coffee machine simulator with persistent storage in a database."""
+class CoffeeMachineJSON:
+    """A class representing a coffee machine simulator with persistent storage in a JSON file."""
+
+    DATA_FILE = "resources.json"
 
     def __init__(self):
-        """Initialize the coffee machine with resources and profit, loading from the database."""
-        logging.info("Connecting to the database...")
-        self.conn = pyodbc.connect(
-            f"DRIVER={config.DB_CONFIG['driver']};"
-            f"SERVER={config.DB_CONFIG['server']};"
-            f"DATABASE={config.DB_CONFIG['database']};"
-            f"UID={config.DB_CONFIG['username']};"
-            f"PWD={config.DB_CONFIG['password']}"
-        )
-        self.cursor = self.conn.cursor()
-        logging.info("Connection successful!")
+        """Initialize the coffee machine with resources and profit, loading from a file if available."""
         self.resources, self.profit = self.load_resources()
 
     def load_resources(self):
-        """Loads resources and profit from the database."""
-        self.cursor.execute("SELECT * FROM Resources")
-        row = self.cursor.fetchone()
-        if row:
-            return {"water": [row.water_ml, 'ml'], "milk": [row.milk_ml, 'ml'], "coffee": [row.coffee_g, 'g']}, row.money
-        return None
-
+        """Loads resources and profit from a JSON file if it exists; otherwise, uses default values."""
+        if os.path.exists(self.DATA_FILE):
+            with open(self.DATA_FILE, "r") as file:
+                data = json.load(file)
+                return data["resources"], data.get("profit", 0)
+        return copy.deepcopy(RESOURCES), 0
+    
     def save_resources(self):
-        """Saves the current resources and profit to the database."""
-        self.cursor.execute("""
-            UPDATE Resources
-            SET water_ml = ?, milk_ml = ?, coffee_g = ?, money = ?""", (self.resources["water"][0], self.resources["milk"][0], self.resources["coffee"][0], self.profit))
-        self.conn.commit()
+        """Saves the current resources and profit to a JSON file."""
+        data = {
+            "resources": self.resources,
+            "profit": self.profit
+        }
+        with open(self.DATA_FILE, "w") as file:
+            json.dump(data, file, indent=4)
 
     def print_report(self):
         """Prints the current status of resources and profit."""
@@ -56,8 +50,7 @@ class CoffeeMachineDB:
         print("\n=== Refill Resources ===")
         print("Available resources to refill: water, milk, coffee")
         while True:
-            resource = input(
-                "Which resource would you like to refill? (type 'exit' to cancel): ").lower()
+            resource = input("Which resource would you like to refill? (type 'exit' to cancel): ").lower()
             if resource == "exit":
                 print("Exiting refill.")
                 logging.info("Refill operation ended.")
@@ -67,8 +60,7 @@ class CoffeeMachineDB:
                 continue
             while True:
                 try:
-                    amount = int(input(
-                        f"How much {resource} would you like to add? (current: {self.resources[resource][0]}{self.resources[resource][1]}): "))
+                    amount = int(input(f"How much {resource} would you like to add? (current: {self.resources[resource][0]}{self.resources[resource][1]}): "))
                     if amount < 0:
                         print("Please enter a positive number.")
                         continue
@@ -78,10 +70,8 @@ class CoffeeMachineDB:
 
             self.resources[resource][0] += amount
             self.save_resources()
-            logging.info(
-                f"Refilled {amount}{self.resources[resource][1]} of {resource}")
-            print(
-                f"{amount}{self.resources[resource][1]} of {resource} added successfully!")
+            logging.info(f"Refilled {amount}{self.resources[resource][1]} of {resource}")
+            print(f"{amount}{self.resources[resource][1]} of {resource} added successfully!")
 
     def is_enough_resources(self, order):
         """Checks if there are enough resources for the selected drink."""
@@ -92,7 +82,7 @@ class CoffeeMachineDB:
                 print(f"Sorry, there is not enough {ingredient}.")
                 enough_resources = False
         return enough_resources
-
+    
     def process_coin_input(self):
         """Handles coin input from the user and returns the total inserted amount."""
         print("Please insert coins.")
@@ -109,15 +99,13 @@ class CoffeeMachineDB:
                 except ValueError:
                     print("Invalid input. Please enter a number.")
         return round(total_inserted, 2)
-
+    
     def is_enough_money(self, total_inserted, order):
         """Checks if the user inserted enough money. Returns True and order cost if successful."""
         order_cost = MENU[order]['cost']
         if order_cost > total_inserted:
-            logging.warning(
-                f"Transaction failed: inserted ${total_inserted}, required ${order_cost}.")
-            print(
-                f"Your drink costs ${order_cost}, but you have inserted only ${total_inserted}")
+            logging.warning(f"Transaction failed: inserted ${total_inserted}, required ${order_cost}.")
+            print(f"Your drink costs ${order_cost}, but you have inserted only ${total_inserted}")
             print("Sorry, that's not enough money. Money refunded.")
             return False, 0
         logging.info(f"Transaction successful: ${total_inserted} inserted.")
@@ -125,7 +113,7 @@ class CoffeeMachineDB:
         if change > 0:
             print(f"Here is ${change} in change.")
         return True, order_cost
-
+    
     def make_coffee(self, order):
         """Deducts the required ingredients and serves the coffee."""
         for ingredient, amount in MENU[order]["ingredients"].items():
@@ -139,8 +127,7 @@ class CoffeeMachineDB:
         logging.info("Coffee machine started.")
         print(logo)
         while True:
-            order = input(
-                "What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
+            order = input("What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
             if order == "off":
                 logging.info("Coffee machine turned off.")
                 print("Saving resources and shutting down...")
@@ -154,8 +141,7 @@ class CoffeeMachineDB:
                 self.refill_resources()
                 continue
             if order not in MENU:
-                print(
-                    "Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
+                print("Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
                 continue
             logging.info(f"User selected: {order}.")
             if not self.is_enough_resources(order):
@@ -164,5 +150,5 @@ class CoffeeMachineDB:
             enough_money, income = self.is_enough_money(total_inserted, order)
             if enough_money:
                 self.make_coffee(order)
-                self.profit += Decimal(income)
+                self.profit += income
                 self.save_resources()
