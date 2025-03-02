@@ -1,16 +1,39 @@
 # Coffee Machine Simulator
-A Python console program that simulates a coffee vending machine.
+This is a Python-based coffee machine simulator that allows users to purchase coffee while tracking available resources. The program supports two storage options:
+
+- **JSON Mode (Default)**: Stores resources in a JSON file. This requires no additional setup.  
+- **Database Mode (Optional)**: Uses an SQL Server database to manage resources. This requires a database connection.
 
 # How to Run
-1. Clone the repository:
+1. Clone the repository and navigate to the project folder:
 
 git clone https://github.com/tarmino-dev/thinking.git
-
-2. Navigate to the project folder:
-
 cd fun_projects/coffee_machine
 
-3. Run the script:
+2. Set up and run a virtual environment (optional but recommended):
+
+On Linux or macOS:
+
+python3 -m venv venv
+source venv/bin/activate
+
+On Windows:
+
+python3 -m venv venv
+venv\Scripts\activate
+
+3. Install dependencies:
+
+pip install -r requirements.txt
+
+4. Configure the mode (optional):
+The default mode uses JSON storage. If you want to use the SQL database, modify the config.ini file and set:
+
+USE_DATABASE = True
+
+If you choose to use the SQL database, ensure your database is properly configured before running the program. You will also need to set up an SQL Server. See README_DB.md for instructions.
+
+5. Run the script:
 
 python main.py
 
@@ -28,7 +51,7 @@ python3 main.py
 - Returning change 
 - Dispensing coffee
 - Printing a report on the current state of resources and the profit (triggered by the "report" command)
-- Saves and loads resources using JSON
+- Stores resources and profit in JSON or database (configured in config.py)
 - Logs all operations in a log file
 - Turning the coffee machine off (triggered by the "off" command)
 - Fully tested with pytest

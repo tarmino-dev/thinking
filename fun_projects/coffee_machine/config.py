@@ -1,5 +1,5 @@
 # Mode switcher
-USE_DATABASE = True  # True - use SQL, False - use JSON
+USE_DATABASE = False  # True - use SQL, False - use JSON
 
 # Database settings
 DB_CONFIG = {
