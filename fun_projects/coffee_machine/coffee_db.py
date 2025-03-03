@@ -48,6 +48,16 @@ class CoffeeMachineDB:
             print(f"Error occured while updating the database: {e}")
             logging.error("Error occured while updating the database.")
 
+    def print_menu(self):
+        """Prints the coffee machine menu."""
+        print("\n======== Menu ========")
+        menu_table = PrettyTable()
+        menu_table.field_names = ["Drink", "Price"]
+        menu_table.align = "l"
+        for drink, attribute in MENU.items():
+            menu_table.add_row([drink.capitalize(), attribute["cost"]])
+        print(menu_table)
+
     def print_report(self):
         """Prints the current status of resources and profit."""
         print("\n=== Coffee Machine Report ===")
@@ -149,6 +159,7 @@ class CoffeeMachineDB:
         """Starts the coffee machine and handles user input."""
         logging.info("Coffee machine started.")
         print(logo)
+        self.print_menu()
         while True:
             order = input(
                 "What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
