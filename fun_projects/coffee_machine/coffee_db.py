@@ -21,7 +21,6 @@ class CoffeeMachineDB:
                 f"UID={config.DB_CONFIG['username']};"
                 f"PWD={config.DB_CONFIG['password']}"
             )
-            self.cursor = self.conn.cursor()
             logging.info("Connection successful!")
         except Exception as e:
             print(f"Connection error: {e}")
@@ -30,20 +29,22 @@ class CoffeeMachineDB:
 
     def load_resources(self):
         """Loads resources and profit from the database."""
-        self.cursor.execute("SELECT * FROM Resources")
-        row = self.cursor.fetchone()
-        if row:
-            return {"water": [row.water_ml, 'ml'], "milk": [row.milk_ml, 'ml'], "coffee": [row.coffee_g, 'g']}, row.money
-        return None
+        with self.conn.cursor() as cursor:
+            cursor.execute("SELECT * FROM Resources")
+            row = cursor.fetchone()
+            if row:
+                return {"water": [row.water_ml, 'ml'], "milk": [row.milk_ml, 'ml'], "coffee": [row.coffee_g, 'g']}, row.money
+            return None
 
     def update_resources(self):
         """Updates the database with the current resources and profit."""
         try:
-            self.cursor.execute("""
-                UPDATE Resources
-                SET water_ml = ?, milk_ml = ?, coffee_g = ?, money = ?""", (self.resources["water"][0], self.resources["milk"][0], self.resources["coffee"][0], self.profit))
-            self.conn.commit()
-            logging.info("Database updated successfully.")
+            with self.conn.cursor() as cursor:
+                cursor.execute("""
+                    UPDATE Resources
+                    SET water_ml = ?, milk_ml = ?, coffee_g = ?, money = ?""", (self.resources["water"][0], self.resources["milk"][0], self.resources["coffee"][0], self.profit))
+                self.conn.commit()
+                logging.info("Database updated successfully.")
         except Exception as e:
             print(f"Error occured while updating the database: {e}")
             logging.error("Error occured while updating the database.")
@@ -160,31 +161,36 @@ class CoffeeMachineDB:
         logging.info("Coffee machine started.")
         print(logo)
         self.print_menu()
-        while True:
-            order = input(
-                "What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
-            if order == "off":
-                print("Saving resources and shutting down...")
-                self.update_resources()
-                logging.info("Coffee machine turned off.")
-                print("The coffee machine is off. Bye!")
-                break
-            if order == "report":
-                self.print_report()
-                continue
-            if order == "refill":
-                self.refill_resources()
-                continue
-            if order not in MENU:
-                print(
-                    "Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
-                continue
-            logging.info(f"User selected: {order}.")
-            if not self.is_enough_resources(order):
-                continue
-            total_inserted = self.process_coin_input()
-            enough_money, income = self.is_enough_money(total_inserted, order)
-            if enough_money:
-                self.make_coffee(order)
-                self.profit += Decimal(income)
-                self.update_resources()
+        try:
+            while True:
+                order = input(
+                    "What would you like? (espresso/latte/cappuccino/report/refill/off): ").lower()
+                if order == "off":
+                    print("Saving resources and shutting down...")
+                    self.update_resources()
+                    logging.info("Coffee machine turned off.")
+                    print("The coffee machine is off. Bye!")
+                    break
+                if order == "report":
+                    self.print_report()
+                    continue
+                if order == "refill":
+                    self.refill_resources()
+                    continue
+                if order not in MENU:
+                    print(
+                        "Invalid choice. Please type 'espresso' or 'latte' or 'cappuccino'")
+                    continue
+                logging.info(f"User selected: {order}.")
+                if not self.is_enough_resources(order):
+                    continue
+                total_inserted = self.process_coin_input()
+                enough_money, income = self.is_enough_money(total_inserted, order)
+                if enough_money:
+                    self.make_coffee(order)
+                    self.profit += Decimal(income)
+                    self.update_resources()
+        finally:
+            self.conn.close()
+            print("Connection closed.")
+            logging.info("Connection closed.")
