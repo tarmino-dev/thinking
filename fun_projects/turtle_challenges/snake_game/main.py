@@ -20,12 +20,6 @@ screen.onkey(snake.down, "Down")
 screen.onkey(snake.left, "Left")
 screen.onkey(snake.right, "Right")
 
-scoreboard.hideturtle()
-scoreboard.penup()
-scoreboard.goto(-40, 275)
-scoreboard.write(f"Score: {scoreboard.score}", move=False, align="left",
-                 font=("Arial", 18, "normal"))
-
 
 game_is_on = True
 while game_is_on:
@@ -36,9 +30,6 @@ while game_is_on:
     # Detect collision with food.
     if snake.head.distance(food) < 15:
         food.refresh()
-        scoreboard.score += 1
-        scoreboard.clear()
-        scoreboard.write(f"Score: {scoreboard.score}", move=False, align="left",
-                 font=("Arial", 18, "normal"))
+        scoreboard.increase_score()
 
 screen.exitonclick()
