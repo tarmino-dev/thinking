@@ -54,6 +54,27 @@ def save_password():
             website_entry.delete(0, tkinter.END)
             password_entry.delete(0, tkinter.END)
 
+# ---------------------------- FIND PASSWORD ------------------------------- #
+
+
+def find_password():
+    website = website_entry.get()
+    try:
+        with open("./data.json", mode="r") as datafile:
+            data = json.load(datafile)
+    except FileNotFoundError:
+        tkinter.messagebox.showinfo(title="Error", message="No Data File Found")
+    else:
+        try:
+            email = data[website]["email"]
+            password = data[website]["password"]
+        except KeyError:
+            tkinter.messagebox.showinfo(
+                title="Error", message="No details for the website exist")
+        else:
+            tkinter.messagebox.showinfo(
+                title=website, message=f"Email: {email}\nPassword: {password}")
+
 
 # ---------------------------- UI SETUP ------------------------------- #
 window = tkinter.Tk()
@@ -74,8 +95,8 @@ password_label = tkinter.Label(text="Password:")
 password_label.grid(column=0, row=3)
 
 # Entries
-website_entry = tkinter.Entry(width=35)
-website_entry.grid(column=1, row=1, columnspan=2)
+website_entry = tkinter.Entry(width=21)
+website_entry.grid(column=1, row=1)
 website_entry.focus()
 email_entry = tkinter.Entry(width=35)
 email_entry.grid(column=1, row=2, columnspan=2)
@@ -89,5 +110,7 @@ generate_button = tkinter.Button(
 generate_button.grid(column=2, row=3)
 add_button = tkinter.Button(text="Add", command=save_password, width=36)
 add_button.grid(column=1, row=4, columnspan=2)
+search_button = tkinter.Button(text="Search", command=find_password, width=13)
+search_button.grid(column=2, row=1)
 
 window.mainloop()
