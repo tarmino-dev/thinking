@@ -4,11 +4,20 @@ import random
 # ---------------------------- CONSTANTS ------------------------------- #
 BACKGROUND_COLOR = "#B1DDC6"
 # ---------------------------- CREATE NEW FLASH CARD ------------------------------- #
-data = pandas.read_csv("./data/french_words.csv")
+try:
+    data = pandas.read_csv("./data/words_to_learn.csv")
+except FileNotFoundError:
+    data = pandas.read_csv("./data/french_words.csv")
 # ‘records’ : list like [{column -> value}, … , {column -> value}]
 words_to_learn = data.to_dict(orient="records")
 current_card = {}
 
+def decorator(func):
+    def wrapper():
+        words_to_learn.remove(func())
+        data = pandas.DataFrame(words_to_learn)
+        data.to_csv("./data/words_to_learn.csv", index=False)
+    return wrapper
 
 def next_card():
     global current_card, flip_timer
@@ -18,6 +27,9 @@ def next_card():
     canvas.itemconfig(card_word, fill="black", text=current_card["French"])
     canvas.itemconfig(card_background, image=card_front_img)
     flip_timer = window.after(3000, flip_card)
+    return current_card
+
+known_card = decorator(next_card)
 # ---------------------------- FLIP CARD ------------------------------- #
 
 
@@ -52,7 +64,7 @@ unknown_button.grid(column=0, row=1)
 
 check_image = tkinter.PhotoImage(file="./images/right.png")
 known_button = tkinter.Button(
-    image=check_image, highlightthickness=0, command=next_card)
+    image=check_image, highlightthickness=0, command=known_card)
 known_button.grid(column=1, row=1)
 
 next_card()  # Fill an initial card with data
