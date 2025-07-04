@@ -5,10 +5,14 @@ import re
 from config import SMTP_ADDRESS, EMAIL, APP_PASSWORD
 
 URL = "https://appbrewery.github.io/instant_pot/"
+HEADERS = {
+    "User-Agent": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/138.0.0.0 Safari/537.36",
+    "Accept-Language": "en-GB,en;q=0.9,uk-UA;q=0.8,uk;q=0.7,de-DE;q=0.6,de;q=0.5,ru-UA;q=0.4,ru;q=0.3,en-US;q=0.2"
+}
 
 
 def main():
-    response = requests.get(url=URL)
+    response = requests.get(url=URL, headers=HEADERS)
     soup = BeautifulSoup(response.content, "html.parser")
     title = soup.find(id="productTitle").get_text().strip()
     # remove whitespace characters (including tabs, line breaks, etc.)
