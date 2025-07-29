@@ -4,6 +4,10 @@ import requests
 app = Flask(__name__)
 
 
+@app.route("/")
+def home():
+    return render_template("index.html")
+
 @app.route("/guess/<username>")
 def guess(username):
     response_agify = requests.get(
@@ -21,8 +25,9 @@ def guess(username):
     return render_template("guess.html", name=username, age=age, gender=gender)
 
 
-@app.route("/blog")
-def blog():
+@app.route("/blog/<num>")
+def get_blog(num):
+    print(num)
     blog_url = "https://api.npoint.io/249c50e23dd4fd8a4fc8"
     response = requests.get(url=blog_url)
     all_posts = response.json()
