@@ -1,7 +1,7 @@
 from flask import Flask, render_template, request
 import requests
 
-posts = requests.get("https://api.npoint.io/0c11cd04266b4539dda0").json()
+posts = requests.get("https://api.npoint.io/fbce267e92535cc0ad1b").json()
 
 app = Flask(__name__)
 
@@ -27,7 +27,7 @@ def receive_data():
     print(data["email"])
     print(data["phone"])
     print(data["message"])
-    return "<h1>Successfully sent your message</h1>"
+    return render_template("contact.html", msg_sent=True)
 
 
 @app.route("/post/<int:index>")

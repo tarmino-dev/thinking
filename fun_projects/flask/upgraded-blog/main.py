@@ -1,7 +1,7 @@
 from flask import Flask, render_template
 import requests
 
-blog_url = "https://api.npoint.io/0c11cd04266b4539dda0"
+blog_url = "https://api.npoint.io/fbce267e92535cc0ad1b"
 response = requests.get(url=blog_url)
 all_posts = response.json()
 
