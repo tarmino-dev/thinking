@@ -16,11 +16,11 @@ def about():
     return render_template("about.html")
 
 
-@app.route("/contact")
+@app.get("/contact")
 def contact():
     return render_template("contact.html")
 
-@app.route("/form-entry", methods=["POST"])
+@app.post("/contact")
 def receive_data():
     data = request.form
     print(data["name"])
