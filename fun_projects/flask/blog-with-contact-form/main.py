@@ -1,5 +1,7 @@
 from flask import Flask, render_template, request
 import requests
+import smtplib
+from config import *
 
 posts = requests.get("https://api.npoint.io/fbce267e92535cc0ad1b").json()
 
@@ -20,14 +22,21 @@ def about():
 def contact():
     return render_template("contact.html")
 
+
 @app.post("/contact")
 def receive_data():
     data = request.form
-    print(data["name"])
-    print(data["email"])
-    print(data["phone"])
-    print(data["message"])
+    email_msg = f"Subject: New message in the Blog Conctact Form\n\nName: {data['name']}\nEmail: {data['email']}\nPhone: {data['phone']}\nMessage: {data['message']}"
+    send_email(email_msg)
     return render_template("contact.html", msg_sent=True)
+
+
+def send_email(message):
+    with smtplib.SMTP(GMAIL_SMTP_ADDRESS) as connection:
+        connection.starttls()
+        connection.login(user=GMAIL_EMAIL, password=GMAIL_APP_PASSWORD)
+        connection.sendmail(from_addr=GMAIL_EMAIL,
+                            to_addrs=GMAIL_EMAIL, msg=message)
 
 
 @app.route("/post/<int:index>")
