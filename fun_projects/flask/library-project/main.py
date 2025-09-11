@@ -59,6 +59,22 @@ def add():
         return redirect(url_for("home"))
     return render_template("add.html")
 
+@app.route("/edit_rating/<int:id>", methods=["GET", "POST"])
+def edit_rating(id):
+    book_to_edit = db.session.execute(db.select(Book).where(Book.id == id)).scalar()
+    if request.method == "POST":
+        new_rating = request.form["new_rating"]
+        book_to_edit.rating = new_rating
+        db.session.commit()
+        return redirect(url_for("home"))
+    return render_template("edit_rating.html", book=book_to_edit)
+
+@app.route("/delete/<int:id>")
+def delete(id):
+    book_to_delete = db.session.execute(db.select(Book).where(Book.id == id)).scalar()
+    db.session.delete(book_to_delete)
+    db.session.commit()
+    return redirect(url_for("home"))
 
 if __name__ == "__main__":
     # ! Add use_reloader=False to prevent duplicate rows in the database and errors due to the inability to do so
