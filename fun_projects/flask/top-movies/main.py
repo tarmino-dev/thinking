@@ -8,6 +8,11 @@ from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import requests
 
+class EditForm(FlaskForm):
+    rating = StringField(label="Your Rating Out of 10 e.g. 7.5", validators=[DataRequired()])
+    review = StringField(label="Your Review", validators=[DataRequired()])
+    submit = SubmitField(label="Done")
+
 app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
@@ -72,6 +77,16 @@ def home():
     all_movies = result.scalars().all()
     return render_template("index.html", movies=all_movies)
 
+@app.route("/edit/<int:id>", methods=["GET", "POST"])
+def edit(id):
+    movie_to_edit = db.session.execute(db.select(Movie).where(Movie.id == id)).scalar()
+    edit_form = EditForm()
+    if edit_form.validate_on_submit():
+        movie_to_edit.rating = float(edit_form.rating.data)
+        movie_to_edit.review = edit_form.review.data
+        db.session.commit()
+        return redirect(url_for("home"))
+    return render_template("edit.html", form=edit_form, movie=movie_to_edit)
 
 if __name__ == '__main__':
     app.run(debug=True, use_reloader=False)
