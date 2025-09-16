@@ -7,6 +7,12 @@ from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField
 from wtforms.validators import DataRequired
 import requests
+from config import TMDB_API_SEARCH_MOVIE_URL, TMDB_API_MOVIE_DETAILS_URL, TMDB_API_HEADERS
+
+
+class FindMovieForm(FlaskForm):
+    title = StringField(label="Movie Title", validators=[DataRequired()])
+    submit = SubmitField(label="Add Movie")
 
 class EditForm(FlaskForm):
     rating = StringField(label="Your Rating Out of 10 e.g. 7.5", validators=[DataRequired()])
@@ -29,13 +35,13 @@ db.init_app(app)
 # CREATE TABLE
 class Movie(db.Model):
     id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String, unique=True)
-    year: Mapped[int] = mapped_column(Integer)
-    description: Mapped[str] = mapped_column(String)
-    rating: Mapped[float] = mapped_column(Float)
-    ranking: Mapped[int] = mapped_column(Integer)
-    review: Mapped[str] = mapped_column(String)
-    img_url: Mapped[str] = mapped_column(String)
+    title: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    year: Mapped[int] = mapped_column(Integer, nullable=False)
+    description: Mapped[str] = mapped_column(String, nullable=False)
+    rating: Mapped[float] = mapped_column(Float, nullable=True)
+    ranking: Mapped[int] = mapped_column(Integer, nullable=True)
+    review: Mapped[str] = mapped_column(String, nullable=True)
+    img_url: Mapped[str] = mapped_column(String, nullable=False)
 
     def __repr__(self):
         return f'<Movie {self.title}>'
@@ -43,32 +49,6 @@ class Movie(db.Model):
 with app.app_context():
     db.create_all()
 
-# ADD ENTRIES TO THE DATABASE 
-# !!! Uncomment the following lines and execute just once at the first start) !!!
-
-# with app.app_context():
-#     new_movie = Movie(
-#     title="Phone Booth",
-#     year=2002,
-#     description="Publicist Stuart Shepard finds himself trapped in a phone booth, pinned down by an extortionist's sniper rifle. Unable to leave or receive outside help, Stuart's negotiation with the caller leads to a jaw-dropping climax.",
-#     rating=7.3,
-#     ranking=10,
-#     review="My favourite character was the caller.",
-#     img_url="https://image.tmdb.org/t/p/w500/tjrX2oWRCM3Tvarz38zlZM7Uc10.jpg")
-
-#     second_movie = Movie(
-#     title="Avatar The Way of Water",
-#     year=2022,
-#     description="Set more than a decade after the events of the first film, learn the story of the Sully family (Jake, Neytiri, and their kids), the trouble that follows them, the lengths they go to keep each other safe, the battles they fight to stay alive, and the tragedies they endure.",
-#     rating=7.3,
-#     ranking=9,
-#     review="I liked the water.",
-#     img_url="https://image.tmdb.org/t/p/w500/t6HIqrRAclMCA60NsSmeqe9RmNV.jpg"
-# )
-
-#     db.session.add(new_movie)
-#     db.session.add(second_movie)
-#     db.session.commit()
 
 
 @app.route("/")
@@ -76,6 +56,34 @@ def home():
     result = db.session.execute(db.select(Movie))
     all_movies = result.scalars().all()
     return render_template("index.html", movies=all_movies)
+
+@app.route("/add", methods=["GET", "POST"])
+def add():
+    form = FindMovieForm()
+    if form.validate_on_submit():
+        movie_title = form.title.data
+        # TODO use the requests library to make a request and search The Movie Database API for all the movies that match that title
+        response = requests.get(url=TMDB_API_SEARCH_MOVIE_URL, params={"query": movie_title}, headers=TMDB_API_HEADERS)
+        response.raise_for_status()
+        data = response.json()
+        return render_template("select.html", movie_candidates=data)
+    return render_template("add.html", form=form)
+
+@app.route("/select/<int:id>")
+def select(id):
+    response = requests.get(url=f"{TMDB_API_MOVIE_DETAILS_URL}/{id}", headers=TMDB_API_HEADERS)
+    response.raise_for_status()
+    data = response.json()
+    new_movie = Movie(
+    title=data["title"],
+    year=data["release_date"].split("-")[0],
+    description=data["overview"],
+    img_url=f"https://image.tmdb.org/t/p/w500{data['poster_path']}"
+    )
+    db.session.add(new_movie)
+    db.session.commit()
+    movie_id = new_movie.id
+    return redirect(url_for("edit", id=movie_id))
 
 @app.route("/edit/<int:id>", methods=["GET", "POST"])
 def edit(id):
