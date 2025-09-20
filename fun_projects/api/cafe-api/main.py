@@ -70,6 +70,16 @@ def get_all_cafes():
     all_cafes_list_of_dicts = [cafe.to_dict() for cafe in all_cafes]
     return jsonify(cafes=all_cafes_list_of_dicts)
 
+@app.route("/search")
+def get_cafe_at_location():
+    query_location = request.args.get("loc") # get a parameter passed in the URL with a ? e.g. /search?loc=Peckham
+    result = db.session.execute(db.select(Cafe).where(Cafe.location == query_location))
+    all_cafes = result.scalars().all()
+    if all_cafes: # check if there are any search results
+        all_cafes_list_of_dicts = [cafe.to_dict() for cafe in all_cafes]
+        return jsonify(cafes=all_cafes_list_of_dicts)
+    return jsonify(error={"Not Found": "Sorry, we don't have a cafe at that location."}), 404
+
 # HTTP POST - Create Record
 
 
