@@ -4,6 +4,16 @@ from sqlalchemy.orm import DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Boolean
 import random
 
+def to_bool(value):
+    if isinstance(value, bool):
+        return value
+    if value is None:
+        return False
+    if isinstance(value, (int, float)):
+        return value != 0
+    if isinstance(value, str):
+        return value.strip().lower() in ("true", "1", "on", "yes", "y")
+    return False
 
 app = Flask(__name__)
 
@@ -81,6 +91,23 @@ def get_cafe_at_location():
     return jsonify(error={"Not Found": "Sorry, we don't have a cafe at that location."}), 404
 
 # HTTP POST - Create Record
+@app.route("/add", methods=["POST"])
+def post_new_cafe():
+    new_cafe = Cafe(
+    name = request.form.get("name"),
+    map_url = request.form.get("map_url"),
+    img_url = request.form.get("img_url"),
+    location = request.form.get("location"),
+    seats = request.form.get("seats"),
+    has_toilet = to_bool(request.form.get("has_toilet")),
+    has_wifi = to_bool(request.form.get("has_wifi")),
+    has_sockets = to_bool(request.form.get("has_sockets")),
+    can_take_calls = to_bool(request.form.get("can_take_calls")),
+    coffee_price = request.form.get("coffee_price")
+    )
+    db.session.add(new_cafe)
+    db.session.commit()
+    return jsonify(response={"success": "Successfully added the new cafe."})
 
 
 # HTTP PUT/PATCH - Update Record
