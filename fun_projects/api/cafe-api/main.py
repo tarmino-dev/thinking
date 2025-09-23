@@ -111,7 +111,7 @@ def post_new_cafe():
 
 
 # HTTP PUT/PATCH - Update Record
-@app.route("/update-price/<cafe_id>", methods=["PATCH"])
+@app.route("/update-price/<int:cafe_id>", methods=["PATCH"])
 def update_price(cafe_id):
     new_price = request.args.get("new_price")
     result = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id))
@@ -124,8 +124,17 @@ def update_price(cafe_id):
 
 
 # HTTP DELETE - Delete Record
-
-
+@app.route("/report-closed/<int:cafe_id>", methods=["DELETE"])
+def delete_cafe(cafe_id):
+    api_key = request.args.get("api-key")
+    if api_key != "TopSecretAPIKey":
+        return jsonify(error={"Forbidden": "Sorry that's not allowed. Make sure you have the correct api_key."}), 403
+    cafe_to_delete = db.session.get(entity=Cafe, ident=cafe_id) # same for cafe_to_delete = db.session.execute(db.select(Cafe).where(Cafe.id == cafe_id)).scalar()
+    if cafe_to_delete is None:
+        return jsonify(error={"Not Found": f"Sorry the cafe with id {cafe_id} was not found in the database."}), 404
+    db.session.delete(cafe_to_delete)
+    db.session.commit()
+    return jsonify(response={"success": "Successfully deleted the cafe."}), 200
 
 if __name__ == '__main__':
     app.run(debug=True)
