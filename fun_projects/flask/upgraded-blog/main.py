@@ -13,6 +13,18 @@ app = Flask(__name__)
 app.config['SECRET_KEY'] = '8BYkEfBA6O6donzWlSihBXox7C0sKR6b'
 Bootstrap5(app)
 
+# CKEDITOR INITIALIZATION
+ckeditor = CKEditor(app)
+
+# POST FORM
+class CreatePostForm(FlaskForm):
+    title = StringField(label="Blog Post Title", validators=[DataRequired()])
+    subtitle = StringField(label="Subtitle", validators=[DataRequired()])
+    author = StringField(label="Your Name", validators=[DataRequired()])
+    img_url = StringField(label="Blog Image URL", validators=[DataRequired(), URL()])
+    body = CKEditorField(label="Blog Content", validators=[DataRequired()])
+    submit = SubmitField(label="SUBMIT POST")
+
 # CREATE DATABASE
 class Base(DeclarativeBase):
     pass
@@ -51,7 +63,23 @@ def show_post(post_id):
     return render_template("post.html", post=requested_post)
 
 
-# TODO: add_new_post() to create a new blog post
+# add_new_post() to create a new blog post
+@app.route("/new-post", methods=["GET", "POST"])
+def add_new_post():
+    form = CreatePostForm()
+    if form.validate_on_submit():
+        new_post = BlogPost(
+            title = form.title.data,
+            subtitle = form.subtitle.data,
+            date = date.today().strftime("%B %d, %Y"),
+            body = form.body.data,
+            author = form.author.data,
+            img_url = form.img_url.data
+        )
+        db.session.add(new_post)
+        db.session.commit()
+        return redirect(url_for("get_all_posts"))
+    return render_template("make-post.html", form=form)
 
 # TODO: edit_post() to change an existing blog post
 
