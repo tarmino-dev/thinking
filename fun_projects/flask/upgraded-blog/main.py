@@ -81,7 +81,26 @@ def add_new_post():
         return redirect(url_for("get_all_posts"))
     return render_template("make-post.html", form=form)
 
-# TODO: edit_post() to change an existing blog post
+# edit_post() to change an existing blog post
+@app.route("/edit-post/<int:post_id>", methods=["GET", "POST"]) # HTML forms (WTForms included) do not accept PUT, PATCH or DELETE methods. Use POST instead.
+def edit_post(post_id):
+    post = db.session.get(entity=BlogPost, ident=post_id)
+    form = CreatePostForm(
+        title = post.title, # in order to fill the fields with the data from the DB
+        subtitle = post.subtitle,
+        author = post.author,
+        img_url = post.img_url,
+        body = post.body
+    )
+    if form.validate_on_submit():
+        post.title = form.title.data
+        post.subtitle = form.subtitle.data
+        post.author = form.author.data
+        post.img_url = form.img_url.data
+        post.body = form.body.data
+        db.session.commit()
+        return redirect(url_for("show_post", post_id=post.id))
+    return render_template("make-post.html", form=form, is_edit=True)
 
 # TODO: delete_post() to remove a blog post from the database
 
