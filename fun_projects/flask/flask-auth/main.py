@@ -41,10 +41,14 @@ def home():
 @app.route('/register', methods=["GET", "POST"])
 def register():
     if request.method == "POST":
+        hash_and_salted_password = generate_password_hash(
+            password=request.form.get("password"),
+            method="pbkdf2:sha256",
+            salt_length=8)
         new_user = User(
-            email = request.form.get("email"),
-            password = request.form.get("password"),
-            name = request.form.get("name")
+            email=request.form.get("email"),
+            password=hash_and_salted_password,
+            name=request.form.get("name")
         )
         db.session.add(new_user)
         db.session.commit()
@@ -69,7 +73,7 @@ def logout():
 
 @app.route('/download')
 def download():
-    pass
+    return send_from_directory("static", "files/cheat_sheet.pdf")
 
 
 if __name__ == "__main__":
