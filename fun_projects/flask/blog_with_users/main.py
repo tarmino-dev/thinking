@@ -10,7 +10,7 @@ from sqlalchemy import Integer, String, Text
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 # Import your forms from the forms.py
-from forms import CreatePostForm
+from forms import CreatePostForm, RegisterForm
 
 
 app = Flask(__name__)
@@ -29,6 +29,20 @@ db = SQLAlchemy(model_class=Base)
 db.init_app(app)
 
 
+# Configure Flask-Login's Login Manager
+
+
+login_manager = LoginManager()
+login_manager.init_app(app)
+
+# Create a user_loader callback
+
+
+@login_manager.user_loader
+def load_user(user_id):
+    return db.session.get(User, user_id)
+
+
 # CONFIGURE TABLES
 class BlogPost(db.Model):
     __tablename__ = "blog_posts"
@@ -41,17 +55,46 @@ class BlogPost(db.Model):
     img_url: Mapped[str] = mapped_column(String(250), nullable=False)
 
 
-# TODO: Create a User table for all your registered users. 
+# Create a User table for all your registered users. 
+class User(UserMixin, db.Model):
+    __tablename__ = "users"
+    id: Mapped[int] = mapped_column(Integer, primary_key=True)
+    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
+    password: Mapped[str] = mapped_column(String(100), nullable=False)
+    name: Mapped[str] = mapped_column(String(100), nullable=False)
 
 
 with app.app_context():
     db.create_all()
 
 
-# TODO: Use Werkzeug to hash the user's password when creating a new user.
-@app.route('/register')
+# Use Werkzeug to hash the user's password when creating a new user.
+@app.route('/register', methods=["GET", "POST"])
 def register():
-    return render_template("register.html")
+    form = RegisterForm()
+    if form.validate_on_submit():
+        email = form.email.data
+        user = db.session.execute(db.select(User).where(User.email == email)).scalar()
+        if user:
+            flash("You've already singed up with that email, log in instead!")
+            return redirect(url_for("login"))
+        password = form.password.data
+        name = form.name.data
+        hash_and_salted_password = generate_password_hash(
+            password=password,
+            method="pbkdf2:sha256",
+            salt_length=8
+        )
+        new_user = User(
+            email=email,
+            password=hash_and_salted_password,
+            name=name
+        )
+        db.session.add(new_user)
+        db.session.commit()
+        login_user(new_user)
+        return redirect(url_for("get_all_posts"))
+    return render_template("register.html", form=form)
 
 
 # TODO: Retrieve a user from the database based on their email. 
