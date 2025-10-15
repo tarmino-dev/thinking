@@ -1,5 +1,5 @@
 from app import create_app
-
+from app.extensions import db
 
 from datetime import date
 from flask import Flask, abort, render_template, redirect, url_for, flash
@@ -7,7 +7,7 @@ from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
 from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
-from flask_sqlalchemy import SQLAlchemy
+# from flask_sqlalchemy import SQLAlchemy
 from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
 from sqlalchemy import Integer, String, Text, ForeignKey
 from functools import wraps
@@ -34,11 +34,11 @@ gravatar = Gravatar(app,
 
 
 # CREATE DATABASE
-class Base(DeclarativeBase):
-    pass
-app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
-db = SQLAlchemy(model_class=Base)
-db.init_app(app)
+# class Base(DeclarativeBase):
+#     pass
+# app.config['SQLALCHEMY_DATABASE_URI'] = os.environ.get('SQLALCHEMY_DATABASE_URI')
+# db = SQLAlchemy(model_class=Base)
+# db.init_app(app)
 
 
 # Configure Flask-Login's Login Manager
