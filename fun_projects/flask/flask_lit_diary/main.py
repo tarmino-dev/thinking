@@ -1,19 +1,19 @@
 from app import create_app
 from app.extensions import db
+from app.models.note import BlogPost
+from app.models.user import User
+from app.models.comment import Comment
 
 from datetime import date
-from flask import Flask, abort, render_template, redirect, url_for, flash
+from flask import abort, render_template, redirect, url_for, flash
 from flask_bootstrap import Bootstrap5
 from flask_ckeditor import CKEditor
 from flask_gravatar import Gravatar
-from flask_login import UserMixin, login_user, LoginManager, current_user, logout_user
+from flask_login import login_user, LoginManager, current_user, logout_user
 # from flask_sqlalchemy import SQLAlchemy
-from sqlalchemy.orm import relationship, DeclarativeBase, Mapped, mapped_column
-from sqlalchemy import Integer, String, Text, ForeignKey
 from functools import wraps
 from werkzeug.security import generate_password_hash, check_password_hash
 from forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
-import os
 
 app = create_app()
 
@@ -52,43 +52,6 @@ login_manager.init_app(app)
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.get(User, user_id)
-
-
-# CONFIGURE TABLES
-class BlogPost(db.Model):
-    __tablename__ = "blog_posts"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    title: Mapped[str] = mapped_column(String(250), unique=True, nullable=False)
-    subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
-    date: Mapped[str] = mapped_column(String(250), nullable=False)
-    body: Mapped[str] = mapped_column(Text, nullable=False)
-    img_url: Mapped[str] = mapped_column(String(250), nullable=False)
-    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    # These are not columns, but a logical relationship between tables.
-    author: Mapped["User"] = relationship("User", back_populates="posts")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="parent_post")
-
-
-class User(UserMixin, db.Model):
-    __tablename__ = "users"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    email: Mapped[str] = mapped_column(String(100), unique=True, nullable=False)
-    password: Mapped[str] = mapped_column(String(100), nullable=False)
-    name: Mapped[str] = mapped_column(String(100), nullable=False)
-    # These are not columns, but a logical relationship between tables.
-    posts: Mapped[list["BlogPost"]] = relationship("BlogPost", back_populates="author")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="comment_author")
-
-
-class Comment(db.Model):
-    __tablename__ = "comments"
-    id: Mapped[int] = mapped_column(Integer, primary_key=True)
-    text: Mapped[str] = mapped_column(Text, nullable=False)
-    author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
-    post_id: Mapped[int] = mapped_column(Integer, ForeignKey("blog_posts.id"))
-    # These are not columns, but a logical relationship between tables.
-    comment_author: Mapped["User"] = relationship("User", back_populates="comments")
-    parent_post: Mapped["BlogPost"] = relationship("BlogPost", back_populates="comments")
 
 
 with app.app_context():
