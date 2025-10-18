@@ -3,7 +3,8 @@ from app.extensions import db
 from app.models.note import BlogPost
 from app.models.user import User
 from app.models.comment import Comment
-from app.forms.forms import CreatePostForm, RegisterForm, LoginForm, CommentForm
+from app.forms.auth_forms import RegisterForm, LoginForm
+from app.forms.note_forms import CreatePostForm, CommentForm
 from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, current_user
 from functools import wraps
