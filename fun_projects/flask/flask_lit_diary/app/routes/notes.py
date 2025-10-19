@@ -7,7 +7,7 @@ from app.utils.decorators import admin_only
 from flask_login import current_user
 from datetime import date
 
-notes_bp = Blueprint("notes", __name__)
+notes_bp = Blueprint("notes", __name__, template_folder="../templates/notes")
 
 # Allow logged-in users to comment on posts
 @notes_bp.route("/post/<int:post_id>", methods=["GET", "POST"])

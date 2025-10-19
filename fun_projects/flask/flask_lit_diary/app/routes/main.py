@@ -2,7 +2,7 @@ from flask import Blueprint, render_template
 from app.extensions import db
 from app.models.note import BlogPost
 
-main_bp = Blueprint("main", __name__)
+main_bp = Blueprint("main", __name__, template_folder="../templates/main")
 
 @main_bp.route('/')
 def get_all_posts():
