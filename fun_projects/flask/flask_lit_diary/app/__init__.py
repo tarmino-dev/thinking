@@ -20,7 +20,12 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(notes_bp)
 
-    # IMPORTANT: import user_loader after db.init_app and models
+    # Models importing, so that db.create_all() could see them
+    from app.models.comment import Comment
+    from app.models.note import BlogPost
+    from app.models.user import User
+
+    # IMPORTANT: import user_loader after Flask(__name__), db.init_app(app) and models importing
     from app.models import user_loader
 
     # Tables Creation
