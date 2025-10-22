@@ -22,8 +22,8 @@ Enter a date like `1985-08-10`, and the script will:
 
 ### 1. Clone the Repository
 ```bash
-git clone https://github.com/<your-username>/musical_time_machine.git
-cd musical_time_machine
+git clone https://github.com/tarmino-dev/thinking.git
+cd fun_projects/web/musical_time_machine
 ```
 
 ### 2. Create a Virtual Environment (recommended)
