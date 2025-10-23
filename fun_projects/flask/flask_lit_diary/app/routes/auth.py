@@ -15,7 +15,7 @@ def register():
         user = db.session.execute(db.select(User).where(User.email == email)).scalar()
         if user:
             flash("You've already singed up with that email, log in instead!")
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         password = form.password.data
         name = form.name.data
         hash_and_salted_password = generate_password_hash(
@@ -45,13 +45,13 @@ def login():
         user = db.session.execute(db.select(User).where(User.email == email)).scalar()
         if not user:
             flash("That email does not exist, please retry again.")
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         if check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("main.get_all_posts"))
         else:
             flash("Password incorrect, please try again.")
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
     return render_template("login.html", form=form)
 
 

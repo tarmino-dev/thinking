@@ -17,7 +17,7 @@ def show_post(post_id):
     if form.validate_on_submit():
         if not current_user.is_authenticated:
             flash("You need to login or register to comment")
-            return redirect(url_for("main.login"))
+            return redirect(url_for("auth.login"))
         new_comment = Comment(
             text = form.comment_text.data,
             comment_author = current_user,

@@ -21,7 +21,7 @@ include "header.html" %}
 <main class="mb-4">
   <div class="container">
     <div class="row">
-      <!-- add a flash message here for users registering twice -->
+      <!-- add a flash message here for: registering twice (registration), not existing login (logging in), invalid password (logging in) -->
         {% with messages = get_flashed_messages() %}
         {% if messages %}
         {% for message in messages %}
