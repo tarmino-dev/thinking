@@ -1,0 +1,27 @@
+{% include "header.html" %}
+
+<!-- Page Header-->
+<header
+  class="masthead"
+  style="background-image: url('{{background_image_url}}')"
+>
+  <div class="container position-relative px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        {% block heading %}{% endblock %}
+      </div>
+    </div>
+  </div>
+</header>
+<!-- Main Content-->
+{% block wrapper_start %}{% endblock %}
+  <div class="container px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        {% block main_content %}{% endblock %}
+      </div>
+    </div>
+  </div>
+{% block wrapper_end %}{% endblock %}
+
+{% include "footer.html" %}
