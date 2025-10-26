@@ -2,18 +2,18 @@
 {% from "bootstrap5/form.html" import render_form %}
 
 <!-- Page Header-->
-<header class="masthead" style="background-image: url('{{post.img_url}}')">
+<header class="masthead" style="background-image: url('{{note.img_url}}')">
   <div class="container position-relative px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="post-heading">
-          <h1>{{ post.title }}</h1>
-          <h2 class="subheading">{{ post.subtitle }}</h2>
+          <h1>{{ note.title }}</h1>
+          <h2 class="subheading">{{ note.subtitle }}</h2>
           <span class="meta"
             >Posted by
-            <!-- post.author is now a User object -->
-            <a href="#">{{ post.author.name }}</a>
-            on {{ post.date }}
+            <!-- note.author is now a User object -->
+            <a href="#">{{ note.author.name }}</a>
+            on {{ note.date }}
           </span>
         </div>
       </div>
@@ -21,19 +21,19 @@
   </div>
 </header>
 
-<!-- Post Content -->
+<!-- Note Content -->
 <article>
   <div class="container px-4 px-lg-5">
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
-        {{ post.body|safe }}
-        <!-- Only show Edit Post button if user id is 1 (admin user) -->
+        {{ note.body|safe }}
+        <!-- Only show Edit Note button if user id is 1 (admin user) -->
         {% if current_user.id == 1 %}
         <div class="d-flex justify-content-end mb-4">
           <a
             class="btn btn-primary float-right"
-            href="{{ url_for('notes.edit_post', post_id=post.id) }}"
-            >Edit Post</a
+            href="{{ url_for('notes.edit_note', note_id=note.id) }}"
+            >Edit Note</a
           >
         </div>
         {% endif %}
@@ -44,9 +44,9 @@
         {{ ckeditor.config(name='comment_text') }}
         {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
         <div class="comment">
-          <!-- Show all the comments on a post -->
+          <!-- Show all the comments on a note -->
           <ul class="commentList">
-            {% for comment in post.comments %}
+            {% for comment in note.comments %}
             <li>
               <div class="commenterImage">
                 <img src="{{ comment.comment_author.email | gravatar }}" />

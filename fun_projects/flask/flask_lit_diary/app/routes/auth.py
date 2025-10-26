@@ -31,7 +31,7 @@ def register():
         db.session.add(new_user)
         db.session.commit()
         login_user(new_user)
-        return redirect(url_for("main.get_all_posts"))
+        return redirect(url_for("main.get_all_notes"))
     return render_template("register.html", form=form)
 
 
@@ -48,7 +48,7 @@ def login():
             return redirect(url_for("auth.login"))
         if check_password_hash(user.password, password):
             login_user(user)
-            return redirect(url_for("main.get_all_posts"))
+            return redirect(url_for("main.get_all_notes"))
         else:
             flash("Password incorrect, please try again.")
             return redirect(url_for("auth.login"))
@@ -58,4 +58,4 @@ def login():
 @auth_bp.route('/logout')
 def logout():
     logout_user()
-    return redirect(url_for("main.get_all_posts"))
+    return redirect(url_for("main.get_all_notes"))

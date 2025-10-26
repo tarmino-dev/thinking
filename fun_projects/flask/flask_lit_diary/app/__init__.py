@@ -22,7 +22,7 @@ def create_app():
 
     # Models importing, so that db.create_all() could see them
     from app.models.comment import Comment
-    from app.models.note import BlogPost
+    from app.models.note import Note
     from app.models.user import User
 
     # IMPORTANT: import user_loader after Flask(__name__), db.init_app(app) and models importing

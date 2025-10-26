@@ -10,5 +10,5 @@ class User(UserMixin, db.Model):
     password: Mapped[str] = mapped_column(String(100), nullable=False)
     name: Mapped[str] = mapped_column(String(100), nullable=False)
     # These are not columns, but a logical relationship between tables.
-    posts: Mapped[list["BlogPost"]] = relationship("BlogPost", back_populates="author")
+    notes: Mapped[list["Note"]] = relationship("Note", back_populates="author")
     comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="comment_author")
