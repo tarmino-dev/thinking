@@ -1,4 +1,5 @@
 {% extends "base_main.html" %}
+{% from "bootstrap5/form.html" import render_form %}
 {% set background_image_url = '../static/assets/img/contact-bg.png' %}
 {% block heading %}
     <div class="page-heading">
@@ -16,67 +17,10 @@
       Have a suggestion, bug report, or just a kind word? Fill out the form below to send us a message. We value every thought and are always open to improving your experience.
     </p>
     <div class="my-5">
-      <!-- * * * * * * * * * * * * * * *-->
-      <!-- * * Simplified SB Contact Form for the Tutorial* *-->
-      <form
-        id="contactForm"
-        name="sentMessage"
-        action="{{ url_for('main.contact') }}"
-        method="post"
-      >
-        <div class="form-floating">
-          <input
-            class="form-control"
-            id="name"
-            name="name"
-            type="text"
-            placeholder="Enter your name..."
-            required
-          />
-          <label for="name">Name</label>
-        </div>
-        <div class="form-floating">
-          <input
-            class="form-control"
-            id="email"
-            name="email"
-            type="email"
-            placeholder="Enter your email..."
-            required
-          />
-          <label for="email">Email address</label>
-        </div>
-        <div class="form-floating">
-          <input
-            class="form-control"
-            id="phone"
-            name="phone"
-            type="tel"
-            placeholder="Enter your phone number..."
-            required
-          />
-          <label for="phone">Phone Number</label>
-        </div>
-        <div class="form-floating">
-          <textarea
-            class="form-control"
-            id="message"
-            name="message"
-            placeholder="Enter your message here..."
-            required
-            style="height: 12rem"
-          ></textarea>
-          <label for="message">Message</label>
-        </div>
-        <br />
-        <button
-          class="btn btn-danger text-uppercase"
-          id="submitButton"
-          type="submit"
-        >
-          NOT IMPLEMENTED YET
-        </button>
-      </form>
+      <!-- * * Contact Form * *-->
+      {{ ckeditor.load() }}
+      {{ ckeditor.config(name='message') }}
+      {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
     </div>
 {% endblock %}
 {% block wrapper_end %}</main>{% endblock %}
