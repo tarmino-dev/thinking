@@ -3,12 +3,21 @@
 {% set background_image_url = '../static/assets/img/contact-bg.png' %}
 {% block heading %}
     <div class="page-heading">
-    {% if msg_sent: %}
-    <h1>Successfully sent your message</h1>
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+        <!-- The alert-success and alert-danger classes will be automatically inserted from Bootstrap. -->
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
     {% else: %}
     <h1>Get in Touch</h1>
-    {% endif %}
     <span class="subheading">We'd love to hear from you.</span>
+    {% endif %}
+    {% endwith %}
     </div>
 {% endblock %}
 {% block wrapper_start %}<main class="mb-4">{% endblock %}
