@@ -3,8 +3,6 @@
 A minimalistic yet elegant Flask web application designed for writers, readers, and creative thinkers to capture their thoughts, reflections, and inspirations.  
 With its warm aesthetic and intuitive interface, Literature Diary blends the charm of traditional journaling with the power of modern web technology.
 
----
-
 ## Features
 
 - Create, edit, and delete personal notes  
@@ -15,8 +13,6 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - SQLite or PostgreSQL database support  
 - Gravatar integration for user avatars  
 - Bootstrap 5 and CKEditor for rich-text editing  
-
----
 
 ## Project Structure
 
@@ -34,53 +30,46 @@ The project follows a modular Flask architecture:
 - `requirements.txt` — dependencies  
 - `README.md` — project documentation
 
----
-
 ## Installation and Setup
 
 ### 1. Clone only the `blog_to_deploy` branch
 
-`git clone -b blog_to_deploy https://github.com/tarmino-dev/thinking.git`
+`git clone -b blog_to_deploy https://github.com/tarmino-dev/thinking.git`  
 `cd thinking/fun_projects/flask/flask_lit_diary`
-
 
 ### 2. Create and activate a virtual environment
 
-`python3 -m venv venv`
-`source venv/bin/activate`   # on macOS/Linux
+`python3 -m venv venv`  
+`source venv/bin/activate`   # on macOS/Linux  
 `venv\Scripts\activate`      # on Windows
 
 ### 3. Install dependencies
 
 `pip install -r requirements.txt`
 
-### Notes on SendGrid setup
+### 4. Notes on SendGrid setup
 
-Sign up at https://sendgrid.com
+1. Sign up at https://sendgrid.com
+2. In your SendGrid dashboard, go to Settings → API Keys and create a new key with “Full Access” or “Mail Send” permissions.
+3. Verify your sender identity in Settings → Sender Authentication → Single Sender Verification.
+4. The email you verify here must match the value of GMAIL_EMAIL in your environment variables (see below).
+5. Once verified, you’ll be able to send emails through your Flask contact form.
 
-In your SendGrid dashboard, go to Settings → API Keys and create a new key with “Full Access” or “Mail Send” permissions.
-
-Verify your sender identity in Settings → Sender Authentication → Single Sender Verification.
-
-The email you verify here must match the value of GMAIL_EMAIL in your environment variables (see below).
-
-Once verified, you’ll be able to send emails through your Flask contact form.
-
-### 4. Set environment variables
+### 5. Set environment variables
 
 Environment variables are read from your system configuration, for example from `~/.zshrc` or system environment settings.
 Add the following lines to your shell configuration file:
 
-`export FLASK_KEY=your_secret_key`
-`export SQLALCHEMY_DATABASE_URI=sqlite:///literature_diary.db`
-`export GMAIL_EMAIL=your_verified_sender@example.com`
+`export FLASK_KEY=your_secret_key`  
+`export SQLALCHEMY_DATABASE_URI=sqlite:///literature_diary.db`  
+`export GMAIL_EMAIL=your_verified_sender@example.com`  
 `export SENDGRID_API_KEY=your_sendgrid_api_key`
 
 After editing, reload your terminal session or run:
 
 `source ~/.zshrc`     # on macOS/Linux
 
-### 5. Run the application
+## Run the application
 
 The application is launched by running the main.py file located in the project root.
 
