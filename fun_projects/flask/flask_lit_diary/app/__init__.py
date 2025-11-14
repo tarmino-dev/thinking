@@ -1,8 +1,7 @@
 from flask import Flask
 from app.extensions import db, ckeditor, bootstrap, gravatar, login_manager
-from app.routes.main import main_bp
-from app.routes.auth import auth_bp
-from app.routes.notes import notes_bp
+from app.routes import auth_bp, main_bp, notes_bp
+from app.models import Comment, Note, User # Models importing, so that db.create_all() could see them
 
 def create_app():
     app = Flask(__name__)
@@ -20,12 +19,7 @@ def create_app():
     app.register_blueprint(auth_bp)
     app.register_blueprint(notes_bp)
 
-    # Models importing, so that db.create_all() could see them
-    from app.models.comment import Comment
-    from app.models.note import Note
-    from app.models.user import User
-
-    # IMPORTANT: import user_loader after Flask(__name__), db.init_app(app) and models importing
+    # IMPORTANT: Import user_loader only after login_manager is ready
     from app.models import user_loader
 
     # Tables Creation
