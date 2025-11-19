@@ -1,15 +1,8 @@
 from langchain_community.vectorstores import FAISS
-from langchain_core.documents import Document
 from embedder import SentenceTransformerEmbeddings
+from utils.load_texts import load_texts
 
-texts = [
-    "Artificial intelligence is transforming many industries.",
-    "Machine learning models require large amounts of data.",
-    "Baking cakes requires flour, sugar, and eggs.",
-    "Neural networks can approximate complex functions."
-]
-
-docs = [Document(page_content=t) for t in texts]
+docs = load_texts()
 
 embedder = SentenceTransformerEmbeddings()
 
