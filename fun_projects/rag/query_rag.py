@@ -9,7 +9,7 @@ loaded_faiss = FAISS.load_local("vectorstore", embedder, allow_dangerous_deseria
 
 print("FAISS index loaded\nDocs in FAISS:", len(loaded_faiss.docstore._dict))
 
-user_query = "I want to know smth about baking cakes."
+user_query = input("Ask anything (e.g. 'How to fly to space?'): ")
 
 results_with_scores = loaded_faiss.similarity_search_with_score(query=user_query
 , k=2)
