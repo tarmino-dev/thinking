@@ -1,6 +1,6 @@
 from langchain_community.vectorstores import FAISS
 from embedder import SentenceTransformerEmbeddings
-from utils.load_texts import load_texts
+from loaders import load_texts
 
 docs = load_texts()
 

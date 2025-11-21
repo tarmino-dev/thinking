@@ -1,6 +1,6 @@
 from langchain_core.documents import Document
 
-def load_texts(filepath="data/texts.txt", separator="@#@"):
+def load_texts(filepath="../data/raw/texts.txt", separator="@#@"):
     with open(filepath, "r", encoding="utf-8") as f:
         content = f.read()
 
