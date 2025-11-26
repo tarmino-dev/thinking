@@ -3,6 +3,8 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 class BasePage:
+    LOGOUT_LINK = (By.LINK_TEXT, "LOG OUT")
+
     def __init__(self, driver, base_url):
         self.driver = driver
         self.wait = WebDriverWait(driver, 10)
@@ -33,3 +35,8 @@ class BasePage:
 
     def get_text(self, locator):
         return self.find(locator).text
+
+    def logout(self):
+        """Click LOG OUT if user is logged in."""
+        if self.is_visible(self.LOGOUT_LINK):
+            self.click(self.LOGOUT_LINK)
