@@ -22,4 +22,8 @@ def create_app():
     # IMPORTANT: Import user_loader only after login_manager is ready
     from app.models import user_loader
 
+    # Tables Creation
+    with app.app_context():
+        db.create_all()
+
     return app
