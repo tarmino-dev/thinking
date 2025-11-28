@@ -1,0 +1,14 @@
+{% extends "base_auth.html" %}
+{% set background_image_url = '../static/assets/img/login-bg.png' %}
+{% block header_title %}Log In{% endblock %}
+{% block subheading %}Enter your world of books and reflections.{% endblock %}
+{% block flash_message %}
+      <!-- add a flash message here for: registering twice (registration), not existing login (logging in), invalid password (logging in) -->
+        {% with messages = get_flashed_messages() %}
+        {% if messages %}
+        {% for message in messages %}
+          <p class="flash">{{ message }}</p>
+        {% endfor %}
+        {% endif %}
+        {% endwith %}
+{% endblock %}

@@ -1,0 +1,35 @@
+{% extends "base_main.html" %}
+{% from "bootstrap5/form.html" import render_form %}
+{% set background_image_url = '../static/assets/img/contact-bg.png' %}
+{% block heading %}
+    <div class="page-heading">
+    {% with messages = get_flashed_messages(with_categories=true) %}
+    {% if messages %}
+    <div class="flash-messages">
+      {% for category, message in messages %}
+      <div class="alert alert-{{ 'success' if category == 'success' else 'danger' }}">
+        <!-- The alert-success and alert-danger classes will be automatically inserted from Bootstrap. -->
+        {{ message }}
+      </div>
+      {% endfor %}
+    </div>
+    {% else: %}
+    <h1>Get in Touch</h1>
+    <span class="subheading">We'd love to hear from you.</span>
+    {% endif %}
+    {% endwith %}
+    </div>
+{% endblock %}
+{% block wrapper_start %}<main class="mb-4">{% endblock %}
+{% block main_content %}
+    <p>
+      Have a suggestion, bug report, or just a kind word? Fill out the form below to send us a message. We value every thought and are always open to improving your experience.
+    </p>
+    <div class="my-5">
+      <!-- * * Contact Form * *-->
+      {{ ckeditor.load() }}
+      {{ ckeditor.config(name='message') }}
+      {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+    </div>
+{% endblock %}
+{% block wrapper_end %}</main>{% endblock %}
