@@ -1,0 +1,35 @@
+name: Run Python UI Tests (Flask Literature Diary)
+
+on:
+  workflow_dispatch: # run manually
+
+jobs:
+  ui-tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+
+      - name: Install dependencies
+        run: |
+          python -m pip install --upgrade pip
+          pip install -r fun_projects/flask/flask_lit_diary/requirements.txt
+
+      - name: Set up Chrome
+        uses: browser-actions/setup-chrome@v1
+
+      - name: Set up ChromeDriver
+        uses: browser-actions/setup-chromedriver@v1
+
+      - name: Run UI tests
+        env:
+          BASE_URL: "https://literature-diary.onrender.com"
+        run: |
+          cd fun_projects/flask/flask_lit_diary
+          pytest tests/ui -vv

@@ -1,6 +1,7 @@
 import pytest
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
+import os
 
 @pytest.fixture(scope="session")
 def base_url():
@@ -8,7 +9,7 @@ def base_url():
     Base URL of the application under test.
     Change this value depending on your environment.
     """
-    return "http://localhost:5000"  # adjust if needed
+    return os.getenv("BASE_URL", "http://localhost:5000")  # BASE_URL is pointed in the workflow file for running tests online
 
 
 @pytest.fixture(scope="session")
