@@ -1,4 +1,4 @@
-name: Run Python Tests (Flask Literature Diary)
+name: Run Python Unit Tests (Flask Literature Diary)
 
 on:
   push:
@@ -9,7 +9,7 @@ on:
       - "fun_projects/flask/flask_lit_diary/**"
 
 jobs:
-  test:
+  unit-tests:
     runs-on: ubuntu-latest
 
     steps:
@@ -26,7 +26,7 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r fun_projects/flask/flask_lit_diary/requirements.txt
 
-      - name: Run tests
+      - name: Run unit tests
         run: |
           cd fun_projects/flask/flask_lit_diary
-          pytest -vv
+          pytest -vv -k "not ui"
