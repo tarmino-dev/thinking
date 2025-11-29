@@ -21,8 +21,8 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r fun_projects/flask/flask_lit_diary/requirements.txt
 
-      - name: Setup Selenium Chrome
-        uses: actions/selenium@v2
+      - name: Setup Chrome & ChromeDriver
+        uses: pytest-selenium/pyleniumio/setup-chrome@v1
 
       - name: Run UI tests
         env:
