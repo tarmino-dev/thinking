@@ -29,4 +29,4 @@ jobs:
       - name: Run unit tests
         run: |
           cd fun_projects/flask/flask_lit_diary
-          pytest tests/unit -vv
+          pytest -k "not ui" -vv
