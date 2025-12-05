@@ -4,7 +4,7 @@ from app.models.note import Note
 from app.models.comment import Comment
 from app.forms.note_forms import CreateNoteForm, CommentForm
 from app.utils.decorators import admin_only
-from flask_login import current_user
+from flask_login import current_user, login_required
 from datetime import date
 
 notes_bp = Blueprint("notes", __name__, template_folder="../templates/notes")
@@ -31,7 +31,7 @@ def show_note(note_id):
 
 # Use a decorator so only an admin user can create a new note
 @notes_bp.route("/new-note", methods=["GET", "POST"])
-@admin_only
+@login_required
 def add_new_note():
     form = CreateNoteForm()
     if form.validate_on_submit():
