@@ -9,7 +9,7 @@ class Note(db.Model):
     subtitle: Mapped[str] = mapped_column(String(250), nullable=False)
     date: Mapped[str] = mapped_column(String(250), nullable=False)
     body: Mapped[str] = mapped_column(Text, nullable=False)
-    img_url: Mapped[str] = mapped_column(String(250), nullable=False)
+    img_url: Mapped[str] = mapped_column(String(250), nullable=True)
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     # These are not columns, but a logical relationship between tables.
     author: Mapped["User"] = relationship("User", back_populates="notes")
