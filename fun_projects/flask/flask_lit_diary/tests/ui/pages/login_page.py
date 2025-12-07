@@ -4,7 +4,7 @@ from .base_page import BasePage
 class LoginPage(BasePage):
     EMAIL_INPUT = (By.NAME, "email")
     PASSWORD_INPUT = (By.NAME, "password")
-    SUBMIT_BUTTON = (By.CSS_SELECTOR, "button[type='submit']")
+    SUBMIT_BUTTON = (By.CSS_SELECTOR, "input[type='submit']")
     ERROR_MESSAGE = (By.CSS_SELECTOR, ".alert-danger")
 
     def open_login_page(self):
