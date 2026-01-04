@@ -1,22 +1,14 @@
 from flask import jsonify
 from app.models.note import Note
 from app.api.v1 import api_v1
+from app.api.serializers.note import note_list_schema
 
 
 @api_v1.get("/notes")
 def get_notes():
-    notes = Note.query.all()
+    notes = Note.query.order_by(Note.id.desc()).all()
 
-    return jsonify([
-        {
-            "id": note.id,
-            "title": note.title,
-            "subtitle": note.subtitle,
-            "date": note.date,
-            "author": {
-                "id": note.author.id,
-                "name": note.author.name
-            }
-        }
-        for note in notes
-    ])
+    return jsonify({
+        "total": len(notes),
+        "items": [note_list_schema(note) for note in notes]
+    })
