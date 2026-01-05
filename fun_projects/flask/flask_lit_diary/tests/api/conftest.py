@@ -1,6 +1,8 @@
 import pytest
 from app import create_app
 from app.extensions import db
+from app.models.user import User
+from app.models.note import Note
 
 
 @pytest.fixture
@@ -23,3 +25,29 @@ def app():
 @pytest.fixture
 def client(app):
     return app.test_client()
+
+
+@pytest.fixture
+def user(app):
+    user = User(
+        email="test@mail.com",
+        password="hashed",
+        name="Test User"
+    )
+    db.session.add(user)
+    db.session.commit()
+    return user
+
+
+@pytest.fixture
+def note(app, user):
+    note = Note(
+        title="Test note",
+        subtitle="Subtitle",
+        body="Body",
+        date="2026-01-01",
+        author=user
+    )
+    db.session.add(note)
+    db.session.commit()
+    return note
