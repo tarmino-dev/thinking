@@ -3,6 +3,7 @@ from app import create_app
 from app.extensions import db
 from app.models.user import User
 from app.models.note import Note
+from flask_login import login_user
 
 
 @pytest.fixture
@@ -51,3 +52,10 @@ def note(app, user):
     db.session.add(note)
     db.session.commit()
     return note
+
+
+@pytest.fixture
+def logged_client(client, user, app):
+    with app.test_request_context():
+        login_user(user)
+    return client
