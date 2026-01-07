@@ -49,3 +49,27 @@ def create_note():
 
     return jsonify(note_detail_schema(note)), 201
 
+@api_v1.put("/notes/<int:note_id>")
+def update_note(note_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication required"}), 401
+
+    note = Note.query.get(note_id)
+    if not note:
+        return jsonify({"error": "note not found"}), 404
+
+    if note.author_id != current_user.id:
+        return jsonify({"error": "forbidden"}), 403
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "invalid JSON"}), 400
+
+    allowed_fields = {"title", "subtitle", "body", "img_url"}
+    for field in allowed_fields:
+        if field in data:
+            setattr(note, field, data[field])
+
+    db.session.commit()
+
+    return jsonify(note_detail_schema(note)), 200
