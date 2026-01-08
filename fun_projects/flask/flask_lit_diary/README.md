@@ -13,18 +13,23 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - SQLite or PostgreSQL database support  
 - Gravatar integration for user avatars  
 - Bootstrap 5 and CKEditor for rich-text editing  
+- REST API for programmatic access  
 
 ## Project Structure
 
 The project follows a modular Flask architecture:
 
 - `app/` — main application package  
+  - `api/` — REST API (v1)  
   - `routes/` — organized Blueprints (`main`, `auth`, `notes`)  
   - `models/` — SQLAlchemy models  
   - `forms/` — Flask-WTF form definitions  
   - `utils/` — utility functions and decorators (e.g., `admin_only`)  
   - `templates/` — feature-based HTML templates  
   - `static/` — CSS, JS, and image assets  
+- `tests/` —  Unit tests
+  - `api/` - REST API tests  
+  - `ui/` - UI and browser tests  
 - `config.py` — environment configuration  
 - `main.py` — application entry point  
 - `requirements.txt` — dependencies  
@@ -88,6 +93,116 @@ To deploy:
 1. Set your environment variables in the hosting service dashboard
 2. Push your latest code to the main branch
 3. Wait for automatic deployment to complete
+
+## API
+
+The project provides a REST API that exposes the core functionality of the application.
+The API coexists with the HTML-based interface and follows REST principles.
+
+### Base URL
+```
+/api/v1
+```
+
+### Authentication
+- Read operations are public.
+- Write operations require authentication.
+- Authentication is session-based (Flask-Login).
+- Only the owner of a resource can update or delete it.
+
+### Notes Endpoints
+
+#### Get all notes (public)
+```
+GET /api/v1/notes
+```
+
+Response example:
+```json
+{
+  "total": 2,
+  "items": [
+    {
+      "id": 1,
+      "title": "Sample note",
+      "subtitle": "Subtitle",
+      "date": "2026-01-01",
+      "author": {
+        "id": 1,
+        "name": "John Doe"
+      }
+    }
+  ]
+}
+```
+
+---
+
+#### Create a note (authenticated)
+```
+POST /api/v1/notes
+```
+
+Request body:
+```json
+{
+  "title": "New note",
+  "subtitle": "Thoughts",
+  "body": "Note content",
+  "img_url": "https://example.com/image.png"
+}
+```
+
+Responses:
+- `201 Created` – note successfully created
+- `401 Unauthorized` – authentication required
+- `400 Bad Request` – validation or input error
+
+---
+
+#### Update a note (authenticated, owner only)
+```
+PUT /api/v1/notes/<id>
+```
+
+Request body (partial update supported):
+```json
+{
+  "title": "Updated title",
+  "body": "Updated content"
+}
+```
+
+Responses:
+- `200 OK`
+- `401 Unauthorized`
+- `403 Forbidden`
+- `404 Not Found`
+- `400 Bad Request`
+
+---
+
+#### Delete a note (authenticated, owner only)
+```
+DELETE /api/v1/notes/<id>
+```
+
+Responses:
+- `204 No Content`
+- `401 Unauthorized`
+- `403 Forbidden`
+- `404 Not Found`
+
+### API Testing
+
+The API is covered by automated tests written with `pytest` using Flask’s test client.
+
+Test location:
+```
+tests/api/
+```
+
+Each endpoint is tested for both successful and error scenarios (authentication, authorization, validation).
 
 ## Technologies Used
 
