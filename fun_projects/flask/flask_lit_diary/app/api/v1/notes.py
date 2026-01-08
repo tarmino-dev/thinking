@@ -73,3 +73,20 @@ def update_note(note_id):
     db.session.commit()
 
     return jsonify(note_detail_schema(note)), 200
+
+@api_v1.delete("/notes/<int:note_id>")
+def delete_note(note_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication required"}), 401
+
+    note = Note.query.get(note_id)
+    if not note:
+        return jsonify({"error": "note not found"}), 404
+
+    if note.author_id != current_user.id:
+        return jsonify({"error": "forbidden"}), 403
+
+    db.session.delete(note)
+    db.session.commit()
+
+    return "", 204
