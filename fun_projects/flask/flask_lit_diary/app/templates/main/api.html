@@ -8,43 +8,87 @@
 {% endblock %}
 {% block wrapper_start %}<main class="mb-4">{% endblock %}
 {% block main_content %}
-    <h2>Overview</h2>
-            <p>
-                This project provides a REST API that allows programmatic access
-                to notes and related resources.
-            </p>
+    <h2 class="mb-4">API Overview</h2>
 
-            <h2>Base URL</h2>
-            <pre>/api/v1</pre>
+<div class="card mb-4">
+    <div class="card-body">
+        <p class="mb-0">
+            The Literature Diary API provides programmatic access to public notes
+            and allows authenticated users to create, update, and delete their own content.
+        </p>
+    </div>
+</div>
 
-            <h2>Authentication</h2>
-            <ul>
-                <li>Read operations are public</li>
-                <li>Write operations require authentication</li>
-                <li>Session-based authentication (Flask-Login)</li>
-            </ul>
+<h3 class="mt-5">Base URL</h3>
 
-            <h2>Notes Endpoints</h2>
+<div class="card mb-4">
+    <div class="card-body">
+        <code>/api/v1</code>
+    </div>
+</div>
 
-            <h4>Get all notes</h4>
-            <pre>GET /api/v1/notes</pre>
+<h3 class="mt-5">Authentication</h3>
 
-            <h4>Create a note</h4>
-            <pre>POST /api/v1/notes</pre>
+<div class="card mb-4">
+    <div class="card-body">
+        <ul class="mb-0">
+            <li><strong>Public:</strong> read-only access to notes</li>
+            <li><strong>Authenticated:</strong> create, update, and delete notes</li>
+            <li>Session-based authentication using <code>Flask-Login</code></li>
+        </ul>
+    </div>
+</div>
 
-            <h4>Update a note</h4>
-            <pre>PUT /api/v1/notes/&lt;id&gt;</pre>
+<h3 class="mt-5">Notes Endpoints</h3>
 
-            <h4>Delete a note</h4>
-            <pre>DELETE /api/v1/notes/&lt;id&gt;</pre>
+<div class="card mb-3">
+    <div class="card-body">
+        <span class="badge bg-success me-2">GET</span>
+        <code>/api/v1/notes</code>
+        <p class="mt-2 mb-0 text-muted">
+            Retrieve all public notes.
+        </p>
+    </div>
+</div>
 
-            <p><small><code>id</code> — integer note identifier</small></p>
+<div class="card mb-3">
+    <div class="card-body">
+        <span class="badge bg-primary me-2">POST</span>
+        <code>/api/v1/notes</code>
+        <p class="mt-2 mb-0 text-muted">
+            Create a new note (authentication required).
+        </p>
+    </div>
+</div>
 
-            <hr>
+<div class="card mb-3">
+    <div class="card-body">
+        <span class="badge bg-warning text-dark me-2">PUT</span>
+        <code>/api/v1/notes/&lt;id&gt;</code>
+        <p class="mt-2 mb-0 text-muted">
+            Update an existing note (owner only).
+        </p>
+    </div>
+</div>
 
-            <p>
-                Full API description and examples are available on
-                <a href="https://github.com/tarmino-dev/thinking/tree/blog_to_deploy/fun_projects/flask/flask_lit_diary" target="_blank">GitHub</a>.
-            </p>
+<div class="card mb-4">
+    <div class="card-body">
+        <span class="badge bg-danger me-2">DELETE</span>
+        <code>/api/v1/notes/&lt;id&gt;</code>
+        <p class="mt-2 mb-0 text-muted">
+            Delete a note (owner only).
+        </p>
+        <p class="mt-2 mb-0">
+            <small><code>id</code> — integer note identifier</small>
+        </p>
+    </div>
+</div>
+
+<hr>
+
+<p>
+Full API description and examples are available on
+<a href="https://github.com/tarmino-dev/thinking/tree/blog_to_deploy/fun_projects/flask/flask_lit_diary" target="_blank">GitHub</a>.
+</p>
 {% endblock %}
 {% block wrapper_end %}</main>{% endblock %}
