@@ -30,8 +30,8 @@
       {% endfor %}
 
       <!-- New Note -->
-      <!-- Only show Create Note button if user id is 1 (admin user) -->
-      {% if current_user.id == 1 %}
+      <!-- Only show Create Note button if user is logged in -->
+      {% if current_user.is_authenticated %}
       <div class="d-flex justify-content-end mb-4">
         <a
           class="btn btn-primary float-right"

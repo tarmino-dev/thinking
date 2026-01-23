@@ -42,9 +42,11 @@ def pages(driver, base_url):
     """
     from .pages.register_page import RegisterPage
     from .pages.login_page import LoginPage
+    from .pages.note_page import NotePage
 
     class Pages:
         register = RegisterPage(driver, base_url)
         login = LoginPage(driver, base_url)
+        note = NotePage(driver, base_url)
 
     return Pages()

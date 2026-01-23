@@ -1,0 +1,92 @@
+from flask import request, jsonify
+from flask_login import current_user
+from app.extensions import db
+from app.models.note import Note
+from app.api.v1 import api_v1
+from app.api.serializers.note import note_list_schema, note_detail_schema
+from datetime import date
+
+
+@api_v1.get("/notes")
+def get_notes():
+    notes = Note.query.order_by(Note.id.desc()).all()
+
+    return jsonify({
+        "total": len(notes),
+        "items": [note_list_schema(note) for note in notes]
+    })
+
+@api_v1.post("/notes")
+def create_note():
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication required"}), 401
+
+    data = request.get_json(silent=True)
+
+    if not data:
+        return jsonify({"error": "invalid JSON"}), 400
+
+    required_fields = ("title", "subtitle", "body")
+    missing = [field for field in required_fields if field not in data]
+
+    if missing:
+        return jsonify({
+            "error": "validation error",
+            "missing_fields": missing
+        }), 400
+
+    note = Note(
+        title=data["title"],
+        subtitle=data["subtitle"],
+        body=data["body"],
+        img_url=data.get("img_url"),
+        author=current_user,
+        date=date.today().strftime("%B %d, %Y")
+    )
+
+    db.session.add(note)
+    db.session.commit()
+
+    return jsonify(note_detail_schema(note)), 201
+
+@api_v1.put("/notes/<int:note_id>")
+def update_note(note_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication required"}), 401
+
+    note = Note.query.get(note_id)
+    if not note:
+        return jsonify({"error": "note not found"}), 404
+
+    if note.author_id != current_user.id:
+        return jsonify({"error": "forbidden"}), 403
+
+    data = request.get_json(silent=True)
+    if not data:
+        return jsonify({"error": "invalid JSON"}), 400
+
+    allowed_fields = {"title", "subtitle", "body", "img_url"}
+    for field in allowed_fields:
+        if field in data:
+            setattr(note, field, data[field])
+
+    db.session.commit()
+
+    return jsonify(note_detail_schema(note)), 200
+
+@api_v1.delete("/notes/<int:note_id>")
+def delete_note(note_id):
+    if not current_user.is_authenticated:
+        return jsonify({"error": "authentication required"}), 401
+
+    note = Note.query.get(note_id)
+    if not note:
+        return jsonify({"error": "note not found"}), 404
+
+    if note.author_id != current_user.id:
+        return jsonify({"error": "forbidden"}), 403
+
+    db.session.delete(note)
+    db.session.commit()
+
+    return "", 204

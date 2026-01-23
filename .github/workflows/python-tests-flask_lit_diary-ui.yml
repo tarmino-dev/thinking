@@ -21,15 +21,13 @@ jobs:
           python -m pip install --upgrade pip
           pip install -r fun_projects/flask/flask_lit_diary/requirements.txt
 
-      - name: Set up Chrome
-        uses: browser-actions/setup-chrome@v1
-
-      - name: Set up ChromeDriver
-        uses: browser-actions/setup-chromedriver@v1
+      - name: Setup Chrome & ChromeDriver
+        uses: pytest-selenium/pyleniumio/setup-chrome@v1
 
       - name: Run UI tests
         env:
           BASE_URL: "https://literature-diary.onrender.com"
         run: |
           cd fun_projects/flask/flask_lit_diary
-          pytest tests/ui -vv
+          pytest tests/ui/test_create_users.py -vv
+          pytest tests/ui/test_create_notes.py -vv

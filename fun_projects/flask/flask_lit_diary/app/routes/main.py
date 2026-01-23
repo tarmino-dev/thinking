@@ -32,6 +32,10 @@ def contact():
         return redirect(url_for("main.contact"))
     return render_template("contact.html", form=form)
 
+@main_bp.route("/api-docs")
+def api_docs():
+    return render_template("api.html")
+
 def send_email(subject, body, to_email=None):
     """
     Sends an email using SendGrid API.

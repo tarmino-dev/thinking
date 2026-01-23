@@ -1,0 +1,50 @@
+{% extends "base_main.html" %}
+{% set background_image_url = '../static/assets/img/api_docs-bg.png' %}
+{% block heading %}
+    <div class="page-heading">
+        <h1>API Documentation</h1>
+        <span class="subheading">REST API for the Literature Diary.</span>
+    </div>
+{% endblock %}
+{% block wrapper_start %}<main class="mb-4">{% endblock %}
+{% block main_content %}
+    <h2>Overview</h2>
+            <p>
+                This project provides a REST API that allows programmatic access
+                to notes and related resources.
+            </p>
+
+            <h2>Base URL</h2>
+            <pre>/api/v1</pre>
+
+            <h2>Authentication</h2>
+            <ul>
+                <li>Read operations are public</li>
+                <li>Write operations require authentication</li>
+                <li>Session-based authentication (Flask-Login)</li>
+            </ul>
+
+            <h2>Notes Endpoints</h2>
+
+            <h4>Get all notes</h4>
+            <pre>GET /api/v1/notes</pre>
+
+            <h4>Create a note</h4>
+            <pre>POST /api/v1/notes</pre>
+
+            <h4>Update a note</h4>
+            <pre>PUT /api/v1/notes/&lt;id&gt;</pre>
+
+            <h4>Delete a note</h4>
+            <pre>DELETE /api/v1/notes/&lt;id&gt;</pre>
+
+            <p><small><code>id</code> — integer note identifier</small></p>
+
+            <hr>
+
+            <p>
+                Full API description and examples are available on
+                <a href="https://github.com/tarmino-dev/thinking/tree/blog_to_deploy/fun_projects/flask/flask_lit_diary" target="_blank">GitHub</a>.
+            </p>
+{% endblock %}
+{% block wrapper_end %}</main>{% endblock %}
