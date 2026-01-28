@@ -1,0 +1,41 @@
+[
+  {
+    "id": "vac_001",
+    "title": "Python Developer",
+    "company": "TechCorp Inc.",
+    "location": "Remote, US",
+    "salary_from": 90000,
+    "salary_to": 130000,
+    "currency": "USD",
+    "experience": "3-5 years",
+    "employment_type": "full-time",
+    "skills": ["Python", "Django", "PostgreSQL", "Docker"],
+    "published_at": "2024-01-10T09:30:00Z"
+  },
+  {
+    "id": "vac_002",
+    "title": "Junior Python Engineer",
+    "company": "DataSoft LLC",
+    "location": "Austin, TX",
+    "salary_from": null,
+    "salary_to": null,
+    "currency": "USD",
+    "experience": "0-1 years",
+    "employment_type": "full-time",
+    "skills": ["Python", "Pandas", "SQL"],
+    "published_at": "2024-01-10T11:15:00Z"
+  },
+  {
+    "id": "vac_003",
+    "title": "Backend Python Developer",
+    "company": "Cloud Solutions",
+    "location": "San Francisco, CA",
+    "salary_from": 120000,
+    "salary_to": 160000,
+    "currency": "USD",
+    "experience": "5+ years",
+    "employment_type": "contract",
+    "skills": ["Python", "FastAPI", "AWS", "Docker", "Kubernetes"],
+    "published_at": "2024-01-10T14:45:00Z"
+  }
+]
