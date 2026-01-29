@@ -1,3 +1,4 @@
+import json
 from sqlalchemy import text
 from etl.db.connection import engine
 import logging
@@ -19,7 +20,7 @@ def load_raw_vacancies(vacancies: list[dict]) -> None:
                 text(UPSERT_RAW_SQL),
                 {
                     "id": vacancy["id"],
-                    "payload": vacancy
+                    "payload": json.dumps(vacancy)
                 }
             )
 
