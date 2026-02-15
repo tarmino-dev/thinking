@@ -8,9 +8,11 @@ from etl.extract.raw_reader import read_raw_vacancies
 from etl.transform.vacancies_transformer import transform_vacancies
 from etl.load.load_staging import load_staging_vacancies
 
+from etl.load.load_mart import refresh_skill_stats
+
 logging.basicConfig(level=logging.INFO)
 
-if __name__ == "__main__":
+def main():
     # FILE -> RAW
     path = Path("data/raw/vacancies_2024_01_10.json")
     vacancies = extract_vacancies_from_json(path)
@@ -20,3 +22,10 @@ if __name__ == "__main__":
     raw = read_raw_vacancies()
     transformed = transform_vacancies(raw)
     load_staging_vacancies(transformed)
+
+    # STAGING -> SQL aggregation -> MART
+    refresh_skill_stats()
+
+
+if __name__ == "__main__":
+    main()
