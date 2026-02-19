@@ -4,7 +4,7 @@ import os
 
 DATABASE_URL = os.getenv(
     "DATABASE_URL",
-    "postgresql://postgres:postgres@localhost:5432/etl"
+    "postgresql://postgres:postgres@host.docker.internal:5432/etl"
 )
 
 engine = create_engine(DATABASE_URL)

@@ -1,6 +1,7 @@
 from sqlalchemy import text
 from etl.db.connection import engine
 import logging
+from typing import List, Dict
 
 logger = logging.getLogger(__name__)
 
@@ -45,7 +46,7 @@ ON CONFLICT (id) DO UPDATE SET
     processed_at = NOW();
 """
 
-def load_staging_vacancies(vacancies: list[dict]) -> None:
+def load_staging_vacancies(vacancies: List[Dict]) -> None:
     with engine.begin() as conn:
         conn.execute(text(UPSERT_STAGING_SQL), vacancies) # bulk insert
 

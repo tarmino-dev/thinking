@@ -1,4 +1,5 @@
 from datetime import datetime
+from typing import List, Dict
 
 def transform_vacancy(raw: dict) -> dict:
     payload = raw["payload"]
@@ -20,5 +21,5 @@ def transform_vacancy(raw: dict) -> dict:
     }
 
 
-def transform_vacancies(raw_vacancies: list[dict]) -> list[dict]:
+def transform_vacancies(raw_vacancies: List[Dict]) -> List[Dict]:
     return [transform_vacancy(raw) for raw in raw_vacancies]
