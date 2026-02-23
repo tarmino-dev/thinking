@@ -15,6 +15,7 @@ from pathlib import Path
 
 default_args = {
     "owner": "airflow",
+    "depends_on_past": False,
     "retries": 2,
     "retry_delay": timedelta(minutes=1),
 }
@@ -35,10 +36,11 @@ def transform_and_load_staging():
 dag = DAG(
     dag_id="vacancies_etl_pipeline",
     default_args=default_args,
-    description="ETL pipeline for vacancies analytics",
+    description="ETL pipeline for vacancies analytics (RAW → STAGING → MART)",
     start_date=datetime(2024, 1, 1),
     schedule_interval="@daily",
     catchup=False,
+    tags=["etl", "airflow", "postgres"],
 )
 
 
