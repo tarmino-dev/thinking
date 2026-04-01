@@ -2,8 +2,13 @@
 {% set background_image_url = '../static/assets/img/home-bg.png' %}
 {% block heading %}
     <div class="site-heading">
+      {% if is_my_notes %}
+      <h1>My Notes</h1>
+      <span class="subheading">Notes you have published on Literary Diary.</span>
+      {% else %}
       <h1>Literary Diary</h1>
       <span class="subheading">A quiet place for readers to record, reflect, and share.</span>
+      {% endif %}
     </div>
 {% endblock %}
 {% block main_content %}

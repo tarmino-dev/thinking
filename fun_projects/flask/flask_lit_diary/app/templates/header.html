@@ -112,6 +112,24 @@
                 >Contact</a
               >
             </li>
+            {% if current_user.is_authenticated %}
+            <li class="nav-item dropdown">
+              <a
+                class="nav-link dropdown-toggle px-lg-3 py-3 py-lg-4"
+                href="#"
+                id="userNavDropdown"
+                role="button"
+                data-bs-toggle="dropdown"
+                aria-expanded="false"
+                >{{ current_user.name }}</a
+              >
+              <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userNavDropdown">
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('main.my_notes') }}">MY NOTES</a>
+                </li>
+              </ul>
+            </li>
+            {% endif %}
           </ul>
         </div>
       </div>

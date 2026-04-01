@@ -1,4 +1,5 @@
 from flask import Blueprint, render_template, redirect, url_for, current_app, flash
+from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.note import Note
 from app.forms.contact_forms import ContactForm
@@ -10,7 +11,19 @@ main_bp = Blueprint("main", __name__, template_folder="../templates/main")
 def get_all_notes():
     result = db.session.execute(db.select(Note))
     notes = result.scalars().all()
-    return render_template("index.html", all_notes=notes)
+    return render_template("index.html", all_notes=notes, is_my_notes=False)
+
+
+@main_bp.route("/my-notes")
+@login_required
+def my_notes():
+    result = db.session.execute(
+        db.select(Note)
+        .where(Note.author_id == current_user.id)
+        .order_by(Note.date.desc())
+    )
+    notes = result.scalars().all()
+    return render_template("index.html", all_notes=notes, is_my_notes=True)
 
 
 @main_bp.route("/about")
