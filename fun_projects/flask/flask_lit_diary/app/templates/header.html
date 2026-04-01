@@ -66,7 +66,6 @@
                 >Home</a
               >
             </li>
-            <!-- Only show Login/Register if user is logged out. Otherwise show "Log Out" -->
             {% if not current_user.is_authenticated %}
             <li class="nav-item">
               <a
@@ -80,14 +79,6 @@
                 class="nav-link px-lg-3 py-3 py-lg-4"
                 href="{{ url_for('auth.register') }}"
                 >Register</a
-              >
-            </li>
-            {% else %}
-            <li class="nav-item">
-              <a
-                class="nav-link px-lg-3 py-3 py-lg-4"
-                href="{{ url_for('auth.logout') }}"
-                >Log Out</a
               >
             </li>
             {% endif %}
@@ -126,6 +117,10 @@
               <ul class="dropdown-menu dropdown-menu-end" aria-labelledby="userNavDropdown">
                 <li>
                   <a class="dropdown-item" href="{{ url_for('main.my_notes') }}">MY NOTES</a>
+                </li>
+                <li><hr class="dropdown-divider" /></li>
+                <li>
+                  <a class="dropdown-item" href="{{ url_for('auth.logout') }}">LOG OUT</a>
                 </li>
               </ul>
             </li>
