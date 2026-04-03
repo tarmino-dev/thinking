@@ -9,7 +9,7 @@ main_bp = Blueprint("main", __name__, template_folder="../templates/main")
 
 @main_bp.route('/')
 def get_all_notes():
-    result = db.session.execute(db.select(Note))
+    result = db.session.execute(db.select(Note).where(Note.is_public.is_(True)))
     notes = result.scalars().all()
     return render_template("index.html", all_notes=notes, is_my_notes=False)
 

@@ -7,6 +7,7 @@ def note_list_schema(note: Note) -> dict:
         "title": note.title,
         "subtitle": note.subtitle,
         "date": note.date,
+        "is_public": note.is_public,
         "author": {
             "id": note.author.id,
             "name": note.author.name,
@@ -22,6 +23,7 @@ def note_detail_schema(note: Note) -> dict:
         "date": note.date,
         "body": note.body,
         "img_url": note.img_url,
+        "is_public": note.is_public,
         "author": {
             "id": note.author.id,
             "name": note.author.name,

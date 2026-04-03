@@ -17,6 +17,7 @@ def test_create_note(app):
             date="2025-11-08",
             body="This is the content of the test note.",
             img_url="https://example.com/image.jpg",
+            is_public=True,
             author_id=user.id,
         )
 
@@ -28,6 +29,7 @@ def test_create_note(app):
 
         assert saved_note is not None
         assert saved_note.title == "My First Note"
+        assert saved_note.is_public is True
         assert saved_note.author.email == "author@example.com"
 
 
@@ -44,6 +46,7 @@ def test_unique_note_title(app):
             date="2025-11-08",
             body="First note body",
             img_url="https://example.com/img1.jpg",
+            is_public=True,
             author_id=user.id,
         )
         db.session.add(note1)
@@ -55,6 +58,7 @@ def test_unique_note_title(app):
             date="2025-11-08",
             body="Second note body",
             img_url="https://example.com/img2.jpg",
+            is_public=True,
             author_id=user.id,
         )
         db.session.add(note2)
@@ -77,6 +81,7 @@ def test_note_author_relationship(app):
             date="2025-11-08",
             body="Testing relationships between Note and User.",
             img_url="https://example.com/img.jpg",
+            is_public=True,
             author=user,
         )
         db.session.add(note)

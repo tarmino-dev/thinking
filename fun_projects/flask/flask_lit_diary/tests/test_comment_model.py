@@ -12,6 +12,7 @@ def test_create_comment(app):
             date="2025-11-08",
             body="Note body for comment test.",
             img_url="https://example.com/note.jpg",
+            is_public=True,
             author=user,
         )
         db.session.add_all([user, note])
@@ -43,6 +44,7 @@ def test_comment_relationships(app):
             date="2025-11-08",
             body="Body text",
             img_url="https://example.com/image.jpg",
+            is_public=True,
             author=user,
         )
         db.session.add_all([user, note])
