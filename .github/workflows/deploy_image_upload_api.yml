@@ -4,6 +4,7 @@ on:
   push:
     branches:
       - image_upload_api
+  workflow_dispatch:
 
 jobs:
   deploy:
