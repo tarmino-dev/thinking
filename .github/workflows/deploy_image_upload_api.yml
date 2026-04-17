@@ -22,6 +22,7 @@ jobs:
           key: ${{ secrets.EC2_SSH_KEY }}
           source: "fun_projects/image_upload_api/*"
           target: "~/image_upload_api"
+          strip_components: 2
 
       - name: Run deploy commands
         uses: appleboy/ssh-action@v1.0.3
