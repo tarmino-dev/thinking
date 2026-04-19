@@ -9,9 +9,9 @@ router = APIRouter()
 async def upload_image(file: UploadFile = File(...)):
     db = SessionLocal()
 
-    path = save_file(file)
+    file_url, thumb_url = save_file(file)
 
-    image = Image(filename=file.filename, path=path)
+    image = Image(filename=file.filename, path=file_url)
     db.add(image)
     db.commit()
     db.refresh(image)
