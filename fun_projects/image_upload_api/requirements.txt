@@ -5,3 +5,5 @@ psycopg2-binary
 python-multipart
 boto3
 Pillow
+python-jose
+passlib[bcrypt]
