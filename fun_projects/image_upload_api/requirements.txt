@@ -6,4 +6,5 @@ python-multipart
 boto3
 Pillow
 python-jose
-passlib[bcrypt]
+passlib[bcrypt]==1.7.4
+bcrypt==3.2.2
