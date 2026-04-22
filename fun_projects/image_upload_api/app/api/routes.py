@@ -5,6 +5,8 @@ from app.db.models import Image, User
 from app.core.security import hash_password, verify_password, create_access_token
 from fastapi import Depends
 from app.api.dependencies import get_current_user
+from app.schemas.user import UserCreate, UserLogin
+from fastapi import HTTPException
 
 router = APIRouter()
 
@@ -31,29 +33,31 @@ def get_image(image_id: int):
     return {"id": image_id}
 
 @router.post("/register")
-def register(username: str, password: str):
+def register(user: UserCreate):
     db = SessionLocal()
 
-    user = User(
-        username=username,
-        password=hash_password(password)
+    hashed_password = hash_password(user.password)
+
+    new_user = User(
+        username=user.username,
+        password=hashed_password
     )
 
-    db.add(user)
+    db.add(new_user)
     db.commit()
 
     return {"msg": "user created"}
 
 
 @router.post("/login")
-def login(username: str, password: str):
+def login(user: UserLogin):
     db = SessionLocal()
 
-    user = db.query(User).filter(User.username == username).first()
+    db_user = db.query(User).filter(User.username == user.username).first()
 
-    if not user or not verify_password(password, user.password):
-        return {"error": "invalid credentials"}
+    if not db_user or not verify_password(user.password, db_user.password):
+        raise HTTPException(status_code=401, detail="Invalid credentials")
 
-    token = create_access_token({"sub": user.username})
+    token = create_access_token({"sub": db_user.username})
 
     return {"access_token": token}
