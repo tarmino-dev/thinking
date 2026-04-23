@@ -4,15 +4,16 @@ from app.db.session import SessionLocal
 from app.db.models import Image, User
 from app.core.security import hash_password, verify_password, create_access_token
 from fastapi import Depends
-from app.api.dependencies import get_current_user
+from app.api.dependencies import get_current_user, get_db
 from app.schemas.user import UserCreate, UserLogin
 from fastapi import HTTPException
 
 router = APIRouter()
 
 @router.post("/upload")
-async def upload_image(file: UploadFile = File(...), user=Depends(get_current_user)):
-    db = SessionLocal()
+async def upload_image(file: UploadFile = File(...),
+                       user=Depends(get_current_user),
+                       db=Depends(get_db)):
 
     file_url, thumb_url = save_file(file)
 
@@ -24,17 +25,15 @@ async def upload_image(file: UploadFile = File(...), user=Depends(get_current_us
     return {"id": image.id, "filename": image.filename}
 
 @router.get("/images")
-def get_images():
-    db = SessionLocal()
+def get_images(db=Depends(get_db)):
     return db.query(Image).all()
 
 @router.get("/images/{image_id}")
-def get_image(image_id: int):
+def get_image(image_id: int, db=Depends(get_db)):
     return {"id": image_id}
 
 @router.post("/register")
-def register(user: UserCreate):
-    db = SessionLocal()
+def register(user: UserCreate, db=Depends(get_db)):
 
     hashed_password = hash_password(user.password)
 
@@ -50,8 +49,7 @@ def register(user: UserCreate):
 
 
 @router.post("/login")
-def login(user: UserLogin):
-    db = SessionLocal()
+def login(user: UserLogin, db=Depends(get_db)):
 
     db_user = db.query(User).filter(User.username == user.username).first()
 
