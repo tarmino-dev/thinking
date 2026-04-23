@@ -12,5 +12,6 @@ class Settings:
     AWS_SECRET_ACCESS_KEY: str = os.getenv("AWS_SECRET_ACCESS_KEY")
     AWS_S3_BUCKET: str = os.getenv("AWS_S3_BUCKET")
     AWS_REGION: str = os.getenv("AWS_REGION", "eu-central-1")
+    SECRET_KEY: str = os.getenv("SECRET_KEY", "supersecret")
 
 settings = Settings()
