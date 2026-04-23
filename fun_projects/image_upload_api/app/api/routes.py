@@ -34,6 +34,9 @@ def get_image(image_id: int, db=Depends(get_db)):
 
 @router.post("/register")
 def register(user: UserCreate, db=Depends(get_db)):
+    existing_user = db.query(User).filter(User.username == user.username).first()
+    if existing_user:
+        raise HTTPException(status_code=400, detail="User already exists")
 
     hashed_password = hash_password(user.password)
 
