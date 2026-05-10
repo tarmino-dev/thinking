@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import StringField, SubmitField
+from wtforms import StringField, SubmitField, RadioField
 from wtforms.validators import DataRequired, URL, Optional
 from flask_ckeditor import CKEditorField
 
@@ -8,6 +8,12 @@ class CreateNoteForm(FlaskForm):
     title = StringField("Note Title", validators=[DataRequired()])
     subtitle = StringField("Note Subtitle", validators=[DataRequired()])
     img_url = StringField("Note Image URL", validators=[Optional(), URL()])
+    visibility = RadioField(
+        "Note visibility",
+        choices=[("public", "Public — visible to everyone"), ("private", "Private — only you (and site admin)")],
+        validators=[DataRequired()],
+        default="public",
+    )
     body = CKEditorField("Note Content", validators=[DataRequired()])
     submit = SubmitField("Submit Note")
 

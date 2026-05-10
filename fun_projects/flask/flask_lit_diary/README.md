@@ -127,6 +127,7 @@ Response example:
       "title": "Sample note",
       "subtitle": "Subtitle",
       "date": "2026-01-01",
+      "is_public": true,
       "author": {
         "id": 1,
         "name": "John Doe"
@@ -153,6 +154,8 @@ Request body:
 }
 ```
 
+Optional boolean `is_public` (default `true`) sets visibility; list and detail responses include the same `is_public` field.
+
 Responses:
 - `201 Created` – note successfully created
 - `401 Unauthorized` – authentication required
@@ -172,6 +175,8 @@ Request body (partial update supported):
   "body": "Updated content"
 }
 ```
+
+You may include `is_public` to switch between public and private; responses echo `is_public` like `POST` and `GET`.
 
 Responses:
 - `200 OK`

@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from app.extensions import db
 from app.models.note import Note
 from app.models.comment import Comment
@@ -9,10 +9,19 @@ from datetime import date
 
 notes_bp = Blueprint("notes", __name__, template_folder="../templates/notes")
 
+
+def _can_edit_note(note: Note) -> bool:
+    if not current_user.is_authenticated:
+        return False
+    return note.author_id == current_user.id or current_user.id == 1
+
+
 # Allow logged-in users to comment on notes
 @notes_bp.route("/note/<int:note_id>", methods=["GET", "POST"])
 def show_note(note_id):
     requested_note = db.get_or_404(Note, note_id)
+    if not requested_note.is_visible_to(current_user):
+        abort(404)
     form = CommentForm()
     if form.validate_on_submit():
         if not current_user.is_authenticated:
@@ -40,6 +49,7 @@ def add_new_note():
             subtitle=form.subtitle.data,
             body=form.body.data,
             img_url=form.img_url.data,
+            is_public=(form.visibility.data == "public"),
             author=current_user,
             date=date.today().strftime("%B %d, %Y")
         )
@@ -49,23 +59,24 @@ def add_new_note():
     return render_template("make-note.html", form=form)
 
 
-# Use a decorator so only an admin user can edit a note
 @notes_bp.route("/edit-note/<int:note_id>", methods=["GET", "POST"])
-@admin_only
+@login_required
 def edit_note(note_id):
     note = db.get_or_404(Note, note_id)
+    if not _can_edit_note(note):
+        abort(403)
     edit_form = CreateNoteForm(
         title=note.title,
         subtitle=note.subtitle,
         img_url=note.img_url,
-        author=note.author,
-        body=note.body
+        visibility="public" if note.is_public else "private",
+        body=note.body,
     )
     if edit_form.validate_on_submit():
         note.title = edit_form.title.data
         note.subtitle = edit_form.subtitle.data
         note.img_url = edit_form.img_url.data
-        note.author = current_user
+        note.is_public = edit_form.visibility.data == "public"
         note.body = edit_form.body.data
         db.session.commit()
         return redirect(url_for("notes.show_note", note_id=note.id))

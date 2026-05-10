@@ -1,5 +1,6 @@
 from flask import request, jsonify
 from flask_login import current_user
+from sqlalchemy import or_
 from app.extensions import db
 from app.models.note import Note
 from app.api.v1 import api_v1
@@ -9,7 +10,12 @@ from datetime import date
 
 @api_v1.get("/notes")
 def get_notes():
-    notes = Note.query.order_by(Note.id.desc()).all()
+    q = Note.query
+    if not current_user.is_authenticated:
+        q = q.filter(Note.is_public.is_(True))
+    elif current_user.id != 1:
+        q = q.filter(or_(Note.is_public.is_(True), Note.author_id == current_user.id))
+    notes = q.order_by(Note.id.desc()).all()
 
     return jsonify({
         "total": len(notes),
@@ -35,11 +41,17 @@ def create_note():
             "missing_fields": missing
         }), 400
 
+    if "is_public" in data and not isinstance(data["is_public"], bool):
+        return jsonify({"error": "validation error", "message": "is_public must be a boolean"}), 400
+
+    is_public = data["is_public"] if "is_public" in data else True
+
     note = Note(
         title=data["title"],
         subtitle=data["subtitle"],
         body=data["body"],
         img_url=data.get("img_url"),
+        is_public=is_public,
         author=current_user,
         date=date.today().strftime("%B %d, %Y")
     )
@@ -65,7 +77,10 @@ def update_note(note_id):
     if not data:
         return jsonify({"error": "invalid JSON"}), 400
 
-    allowed_fields = {"title", "subtitle", "body", "img_url"}
+    if "is_public" in data and not isinstance(data["is_public"], bool):
+        return jsonify({"error": "validation error", "message": "is_public must be a boolean"}), 400
+
+    allowed_fields = {"title", "subtitle", "body", "img_url", "is_public"}
     for field in allowed_fields:
         if field in data:
             setattr(note, field, data[field])
