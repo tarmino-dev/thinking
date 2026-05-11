@@ -7,7 +7,6 @@ class RegisterPage(BasePage):
     EMAIL_INPUT = (By.NAME, "email")
     PASSWORD_INPUT = (By.NAME, "password")
     SUBMIT_BUTTON = (By.CSS_SELECTOR, "input[type='submit']")
-    LOGOUT_LINK = (By.LINK_TEXT, "LOG OUT")
 
     def open_register_page(self):
         self.open("/register")
@@ -20,4 +19,5 @@ class RegisterPage(BasePage):
         self.click(self.SUBMIT_BUTTON)
 
     def is_logged_in(self):
-        return self.is_visible(self.LOGOUT_LINK)
+        """True when the user menu (name dropdown) is visible after auth."""
+        return self.is_visible(self.USER_MENU_TOGGLE)
