@@ -3,6 +3,7 @@ from selenium.webdriver.support import expected_conditions as EC
 from selenium.webdriver.common.by import By
 
 class BasePage:
+    USER_MENU_TOGGLE = (By.ID, "userNavDropdown")
     LOGOUT_LINK = (By.LINK_TEXT, "LOG OUT")
 
     def __init__(self, driver, base_url):
@@ -41,6 +42,7 @@ class BasePage:
         return self.find(locator).text
 
     def logout(self):
-        """Click LOG OUT if user is logged in."""
-        if self.is_visible(self.LOGOUT_LINK):
+        """Open the user menu and click LOG OUT if logged in."""
+        if self.is_visible(self.USER_MENU_TOGGLE):
+            self.click(self.USER_MENU_TOGGLE)
             self.click(self.LOGOUT_LINK)

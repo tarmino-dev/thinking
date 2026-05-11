@@ -27,7 +27,7 @@ def test_create_user(pages, user):
         password=user["password"]
     )
 
-    # Verify that the logout button is visible
+    # Verify that the user menu (logged-in state) is visible
     assert pages.register.is_logged_in(), f"Registration failed for: {user['email']}"
 
     # Logout for next user
