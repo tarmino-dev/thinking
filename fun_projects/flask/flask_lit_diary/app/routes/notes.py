@@ -81,6 +81,7 @@ def edit_note(note_id):
         title=note.title,
         subtitle=note.subtitle,
         img_url=note.img_url,
+        book=note.book or "",
         visibility="public" if note.is_public else "private",
         body=note.body,
     )
