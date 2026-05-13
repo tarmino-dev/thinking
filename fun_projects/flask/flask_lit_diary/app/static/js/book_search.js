@@ -1,5 +1,5 @@
 /**
- * New / edit note page: Search button calls /api/books/search and lists results under Book.
+ * New / edit note page: Search calls /api/books/search; clicking a result fills Book and clears the list.
  */
 (function () {
   function showMessage(container, text, className) {
@@ -69,29 +69,49 @@
         return;
       }
 
-      const ul = document.createElement("ul");
-      ul.className = "list-unstyled mb-0 border rounded p-2 bg-light";
+      function pickDisplay(item) {
+        if (item.display && String(item.display).trim()) {
+          return String(item.display).trim();
+        }
+        const t = (item.title || "").trim();
+        const a = (item.author || "").trim();
+        if (t && a) {
+          return t + " — " + a;
+        }
+        return t || a;
+      }
+
+      const list = document.createElement("div");
+      list.className = "list-group list-group-flush border rounded small";
 
       items.forEach(function (item) {
-        const li = document.createElement("li");
-        li.className = "py-1 border-bottom";
+        const choice = document.createElement("button");
+        choice.type = "button";
+        choice.className =
+          "list-group-item list-group-item-action text-start py-2";
+        choice.setAttribute("aria-label", "Use this book for the note");
 
         const strong = document.createElement("strong");
         strong.textContent = item.title || "";
-        li.appendChild(strong);
+        choice.appendChild(strong);
 
         if (item.author) {
-          li.appendChild(document.createElement("br"));
+          choice.appendChild(document.createElement("br"));
           const span = document.createElement("span");
           span.className = "text-muted";
           span.textContent = item.author;
-          li.appendChild(span);
+          choice.appendChild(span);
         }
 
-        ul.appendChild(li);
+        choice.addEventListener("click", function () {
+          input.value = pickDisplay(item);
+          resultsEl.textContent = "";
+        });
+
+        list.appendChild(choice);
       });
 
-      resultsEl.appendChild(ul);
+      resultsEl.appendChild(list);
     });
   }
 
