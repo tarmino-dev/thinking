@@ -65,7 +65,7 @@
 
       const items = Array.isArray(data.results) ? data.results : [];
       if (items.length === 0) {
-        showMessage(resultsEl, "No results.", "text-muted");
+        showMessage(resultsEl, "No results found.", "book-search-empty");
         return;
       }
 
@@ -84,11 +84,14 @@
       const list = document.createElement("div");
       list.className = "list-group list-group-flush border rounded small";
 
+      const scroll = document.createElement("div");
+      scroll.className = "book-search-results-scroll";
+
       items.forEach(function (item) {
         const choice = document.createElement("button");
         choice.type = "button";
         choice.className =
-          "list-group-item list-group-item-action text-start py-2";
+          "list-group-item list-group-item-action book-search-result-btn text-start py-2";
         choice.setAttribute("aria-label", "Use this book for the note");
 
         const strong = document.createElement("strong");
@@ -111,7 +114,8 @@
         list.appendChild(choice);
       });
 
-      resultsEl.appendChild(list);
+      scroll.appendChild(list);
+      resultsEl.appendChild(scroll);
     });
   }
 
