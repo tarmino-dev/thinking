@@ -1,4 +1,4 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request
 from app.extensions import db
 from app.models.note import Note
 from app.models.comment import Comment
@@ -14,6 +14,17 @@ def _can_edit_note(note: Note) -> bool:
     if not current_user.is_authenticated:
         return False
     return note.author_id == current_user.id or current_user.id == 1
+
+
+def _get_book_from_form(form: CreateNoteForm) -> str | None:
+    """
+    Prefer WTForms field access when `book` is added to CreateNoteForm.
+    Temporary fallback keeps current step working until then.
+    """
+    book_field = getattr(form, "book", None)
+    if book_field is not None:
+        return book_field.data
+    return request.form.get("book")
 
 
 # Allow logged-in users to comment on notes
@@ -49,6 +60,7 @@ def add_new_note():
             subtitle=form.subtitle.data,
             body=form.body.data,
             img_url=form.img_url.data,
+            book=_get_book_from_form(form),
             is_public=(form.visibility.data == "public"),
             author=current_user,
             date=date.today().strftime("%B %d, %Y")
@@ -76,6 +88,7 @@ def edit_note(note_id):
         note.title = edit_form.title.data
         note.subtitle = edit_form.subtitle.data
         note.img_url = edit_form.img_url.data
+        note.book = _get_book_from_form(edit_form)
         note.is_public = edit_form.visibility.data == "public"
         note.body = edit_form.body.data
         db.session.commit()
