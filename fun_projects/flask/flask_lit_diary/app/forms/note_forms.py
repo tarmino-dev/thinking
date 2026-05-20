@@ -8,6 +8,7 @@ class CreateNoteForm(FlaskForm):
     title = StringField("Note Title", validators=[DataRequired()])
     subtitle = StringField("Note Subtitle", validators=[DataRequired()])
     img_url = StringField("Note Image URL", validators=[Optional(), URL()])
+    book = StringField("Book", validators=[Optional()])
     visibility = RadioField(
         "Note visibility",
         choices=[("public", "Public — visible to everyone"), ("private", "Private — only you (and site admin)")],

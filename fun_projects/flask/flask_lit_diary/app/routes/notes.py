@@ -49,6 +49,7 @@ def add_new_note():
             subtitle=form.subtitle.data,
             body=form.body.data,
             img_url=form.img_url.data,
+            book=form.book.data,
             is_public=(form.visibility.data == "public"),
             author=current_user,
             date=date.today().strftime("%B %d, %Y")
@@ -69,6 +70,7 @@ def edit_note(note_id):
         title=note.title,
         subtitle=note.subtitle,
         img_url=note.img_url,
+        book=note.book or "",
         visibility="public" if note.is_public else "private",
         body=note.body,
     )
@@ -76,6 +78,7 @@ def edit_note(note_id):
         note.title = edit_form.title.data
         note.subtitle = edit_form.subtitle.data
         note.img_url = edit_form.img_url.data
+        note.book = edit_form.book.data
         note.is_public = edit_form.visibility.data == "public"
         note.body = edit_form.body.data
         db.session.commit()

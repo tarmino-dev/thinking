@@ -10853,3 +10853,28 @@ header.masthead .post-heading .meta a {
   color: #ee6f57;
   text-align: center;
 }
+
+/* Book search results (new / edit note) */
+.book-search-results-scroll {
+  max-height: 14rem;
+  overflow-y: auto;
+  border-radius: 0.375rem;
+}
+.book-search-results-scroll .book-search-result-btn {
+  transition: background-color 0.15s ease-in-out;
+}
+.book-search-results-scroll .book-search-result-btn:hover {
+  background-color: rgba(0, 133, 161, 0.1);
+}
+.book-search-results-scroll .book-search-result-btn:focus-visible {
+  outline: 2px solid var(--bs-primary);
+  outline-offset: -2px;
+}
+.book-search-empty {
+  padding: 0.75rem 1rem;
+  border: 1px dashed var(--bs-gray-400);
+  border-radius: 0.375rem;
+  text-align: center;
+  color: var(--bs-secondary);
+  font-size: 0.875rem;
+}
