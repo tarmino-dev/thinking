@@ -47,6 +47,7 @@ def note(app, user):
         title="Test note",
         subtitle="Subtitle",
         body="Body",
+        book="Test Book",
         date="2026-01-01",
         author=user
     )

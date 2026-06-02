@@ -50,6 +50,7 @@ def create_note():
         title=data["title"],
         subtitle=data["subtitle"],
         body=data["body"],
+        book=data.get("book"),
         img_url=data.get("img_url"),
         is_public=is_public,
         author=current_user,
@@ -80,7 +81,7 @@ def update_note(note_id):
     if "is_public" in data and not isinstance(data["is_public"], bool):
         return jsonify({"error": "validation error", "message": "is_public must be a boolean"}), 400
 
-    allowed_fields = {"title", "subtitle", "body", "img_url", "is_public"}
+    allowed_fields = {"title", "subtitle", "body", "book", "img_url", "is_public"}
     for field in allowed_fields:
         if field in data:
             setattr(note, field, data[field])

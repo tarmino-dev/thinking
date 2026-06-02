@@ -38,7 +38,8 @@ def test_create_note(pages, user, note):
     pages.note.create_note(
         title=note["title"],
         subtitle=note["subtitle"],
-        content=note["content"]
+        content=note["content"],
+        book=note.get("book", note["title"])
     )
 
     # Optional check: homepage contains "Create New Note" button

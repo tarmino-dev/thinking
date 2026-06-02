@@ -6,6 +6,7 @@ class NotePage(BasePage):
     # Locators
     TITLE_INPUT = (By.ID, "title")
     SUBTITLE_INPUT = (By.ID, "subtitle")
+    BOOK_INPUT = (By.ID, "note-book-input")
     SUBMIT_BUTTON = (By.ID, "submit")
 
     CKEDITOR_IFRAME = (By.CSS_SELECTOR, "iframe.cke_wysiwyg_frame")
@@ -16,12 +17,14 @@ class NotePage(BasePage):
         self.open("/new-note")
         return self
 
-    def create_note(self, title, subtitle, content):
+    def create_note(self, title, subtitle, content, book=None):
         """Fill form fields and CKEditor, then submit."""
 
         # Title and subtitle (using BasePage.type)
         self.type(self.TITLE_INPUT, title)
         self.type(self.SUBTITLE_INPUT, subtitle)
+        if book is not None:
+            self.type(self.BOOK_INPUT, book)
 
         # Switch to CKEditor iframe
         iframe = self.find(self.CKEDITOR_IFRAME)

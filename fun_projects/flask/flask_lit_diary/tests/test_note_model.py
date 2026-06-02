@@ -16,6 +16,7 @@ def test_create_note(app):
             subtitle="Testing SQLAlchemy relationships",
             date="2025-11-08",
             body="This is the content of the test note.",
+            book="Book For Model Test",
             img_url="https://example.com/image.jpg",
             is_public=True,
             author_id=user.id,
@@ -29,6 +30,7 @@ def test_create_note(app):
 
         assert saved_note is not None
         assert saved_note.title == "My First Note"
+        assert saved_note.book == "Book For Model Test"
         assert saved_note.is_public is True
         assert saved_note.author.email == "author@example.com"
 

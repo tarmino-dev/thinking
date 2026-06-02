@@ -7,7 +7,8 @@ def test_update_note_success(logged_client, note):
         f"/api/v1/notes/{note.id}",
         json={
             "title": "Updated title",
-            "body": "Updated body"
+            "body": "Updated body",
+            "book": "Dune",
         }
     )
 
@@ -16,6 +17,7 @@ def test_update_note_success(logged_client, note):
     data = response.get_json()
     assert data["title"] == "Updated title"
     assert data["body"] == "Updated body"
+    assert data["book"] == "Dune"
 
 # Unauthorized (401)
 def test_update_note_unauthorized(client, note):
