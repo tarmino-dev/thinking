@@ -9,6 +9,9 @@
         <div class="post-heading">
           <h1>{{ note.title }}</h1>
           <h2 class="subheading">{{ note.subtitle }}</h2>
+          {% if note.book %}
+          <p class="meta mb-2">Book: {{ note.book }}</p>
+          {% endif %}
           <span class="meta"
             >Posted by
             <!-- note.author is now a User object -->

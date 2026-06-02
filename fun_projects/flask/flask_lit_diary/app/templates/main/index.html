@@ -19,6 +19,9 @@
           <h2 class="post-title">{{ note.title }}</h2>
           <h3 class="post-subtitle">{{ note.subtitle }}</h3>
         </a>
+        {% if note.book %}
+        <p class="post-meta mb-1">Book: {{ note.book }}</p>
+        {% endif %}
         <p class="post-meta">
           Posted by
           <!-- note.author is now a User object -->
