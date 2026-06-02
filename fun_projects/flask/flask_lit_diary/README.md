@@ -6,6 +6,7 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 ## Features
 
 - Create, edit, and delete personal notes  
+- Optional `book` field for notes, which utilizes the Open Library API for book search.  
 - User authentication (register/login/logout)  
 - Clean and cozy interface with warm, book-like tones  
 - Contact form with SendGrid email integration  
@@ -124,13 +125,14 @@ Response example:
   "items": [
     {
       "id": 1,
-      "title": "Sample note",
-      "subtitle": "Subtitle",
+      "title": "Reading reflection",
+      "subtitle": "Notes after session",
+      "book": "Sample Book Title — Sample Author",
       "date": "2026-01-01",
       "is_public": true,
       "author": {
         "id": 1,
-        "name": "John Doe"
+        "name": "Sample User"
       }
     }
   ]
@@ -147,14 +149,17 @@ POST /api/v1/notes
 Request body:
 ```json
 {
-  "title": "New note",
-  "subtitle": "Thoughts",
-  "body": "Note content",
+  "title": "Reading reflection",
+  "subtitle": "Notes after session",
+  "body": "Reflection on chapter themes.",
+  "book": "Sample Book Title — Sample Author",
   "img_url": "https://example.com/image.png"
 }
 ```
 
-Optional boolean `is_public` (default `true`) sets visibility; list and detail responses include the same `is_public` field.
+Optional fields:
+- `is_public` (boolean, default `true`) — sets note visibility
+- `book` (string) — free-text metadata in format like `Title — Author`
 
 Responses:
 - `201 Created` – note successfully created
@@ -171,12 +176,17 @@ PUT /api/v1/notes/<id>
 Request body (partial update supported):
 ```json
 {
-  "title": "Updated title",
-  "body": "Updated content"
+  "title": "Updated reflection",
+  "body": "Updated reflection on chapter themes.",
+  "book": "Another Sample Book Title — Another Sample Author"
 }
 ```
 
-You may include `is_public` to switch between public and private; responses echo `is_public` like `POST` and `GET`.
+You may include:
+- `is_public` to switch between public and private
+- `book` to set or update book metadata
+
+Responses echo these fields like `POST` and `GET`.
 
 Responses:
 - `200 OK`
