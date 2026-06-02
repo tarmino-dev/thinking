@@ -9,4 +9,5 @@ def test_get_notes_returns_list(client, note):
 
     item = data["items"][0]
     assert item["title"] == "Test note"
+    assert item["book"] == "Test Book"
     assert item["author"]["name"] == "Test User"

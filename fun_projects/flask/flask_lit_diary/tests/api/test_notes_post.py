@@ -3,7 +3,8 @@ def test_create_note_authenticated(logged_client):
     payload = {
         "title": "New note",
         "subtitle": "Sub",
-        "body": "Text"
+        "body": "Text",
+        "book": "The Trial",
     }
 
     response = logged_client.post(
@@ -15,6 +16,7 @@ def test_create_note_authenticated(logged_client):
 
     data = response.get_json()
     assert data["title"] == "New note"
+    assert data["book"] == "The Trial"
 
 
 # Unauthorized (401)
