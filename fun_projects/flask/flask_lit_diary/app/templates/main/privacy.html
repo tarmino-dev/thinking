@@ -1,0 +1,82 @@
+{% extends "base_main.html" %}
+{% set background_image_url = '../static/assets/img/about-bg.png' %}
+{% block heading %}
+    <div class="page-heading">
+        <h1>Privacy Policy</h1>
+        <span class="subheading">How we collect, use, and protect your data.</span>
+    </div>
+{% endblock %}
+{% block wrapper_start %}<main class="mb-4">{% endblock %}
+{% block main_content %}
+    <p class="text-muted small">Last updated: June 2026</p>
+
+    <h2 class="h4 mt-4">1. Data We Collect</h2>
+    <p>When you register and use Literary Diary, we store the following personal data:</p>
+    <ul>
+        <li><strong>Account information</strong> — your email address, display name, and a hashed (PBKDF2-SHA256) copy of your password. Your plain-text password is never stored.</li>
+        <li><strong>Notes</strong> — title, subtitle, body, book title, date, cover image URL, and visibility setting (public or private).</li>
+        <li><strong>Comments</strong> — the text of comments you post on notes.</li>
+    </ul>
+    <p>We do <strong>not</strong> store contact form submissions locally. Messages sent through the contact form are forwarded via SendGrid (see Section 3) and are not retained in our database.</p>
+
+    <h2 class="h4 mt-4">2. Cookies</h2>
+    <p>We set a single session cookie when you log in. It keeps you authenticated while you browse. It is deleted when your session ends.</p>
+    <p>We use <strong>no analytics cookies</strong>, advertising cookies, or third-party tracking cookies.</p>
+
+    <h2 class="h4 mt-4">3. Third-Party Processors</h2>
+    <p>Using the site causes your browser to contact several external services. Each receives limited technical data (typically your IP address and browser User-Agent):</p>
+    <table class="table table-sm table-bordered mt-2">
+        <thead class="table-light">
+            <tr>
+                <th>Service</th>
+                <th>When contacted</th>
+                <th>Data sent</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td>Gravatar</td>
+                <td>Pages that show comments</td>
+                <td>An MD5 hash of your email address, used to load your avatar</td>
+            </tr>
+            <tr>
+                <td>SendGrid</td>
+                <td>When you submit the contact form</td>
+                <td>Your name, email address, and message</td>
+            </tr>
+            <tr>
+                <td>Google Fonts CDN</td>
+                <td>Every page load</td>
+                <td>IP address, browser User-Agent, timestamp</td>
+            </tr>
+            <tr>
+                <td>Font Awesome CDN</td>
+                <td>Every page load</td>
+                <td>IP address, browser User-Agent, timestamp</td>
+            </tr>
+            <tr>
+                <td>jsDelivr (Bootstrap JS)</td>
+                <td>Every page load</td>
+                <td>IP address, browser User-Agent, timestamp</td>
+            </tr>
+            <tr>
+                <td>Open Library API</td>
+                <td>When you search for a book while writing a note</td>
+                <td>Your search query</td>
+            </tr>
+        </tbody>
+    </table>
+
+    <h2 class="h4 mt-4">4. Your Rights</h2>
+    <p>Under the General Data Protection Regulation (GDPR) you have the following rights over your personal data:</p>
+    <ul>
+        <li><strong>Right of access and portability (Art. 15, 20)</strong> — You can download a full copy of your data (profile, notes, and comments) in JSON format at any time via the <a href="/api/v1/export">data export endpoint</a>.</li>
+        <li><strong>Right to rectification (Art. 16)</strong> — You can edit or update any note you have written from within the app.</li>
+        <li><strong>Right to erasure (Art. 17)</strong> — You can permanently delete your account, including all your notes and comments, from the account menu (DELETE ACCOUNT). This action is irreversible.</li>
+        <li><strong>Right to restrict processing or object (Art. 18, 21)</strong> — You can set any note to private at any time, limiting its visibility to yourself only. For broader restrictions or objections, contact us using the details below.</li>
+    </ul>
+
+    <h2 class="h4 mt-4">5. Contact</h2>
+    <p>For any privacy-related requests not covered by the self-service options above, please use the <a href="{{ url_for('main.contact') }}">contact form</a>.</p>
+{% endblock %}
+{% block wrapper_end %}</main>{% endblock %}

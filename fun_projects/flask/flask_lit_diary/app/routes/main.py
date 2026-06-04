@@ -49,6 +49,11 @@ def contact():
 def api_docs():
     return render_template("api.html")
 
+
+@main_bp.route("/privacy")
+def privacy():
+    return render_template("privacy.html")
+
 def send_email(subject, body, to_email=None):
     """
     Sends an email using SendGrid API.
