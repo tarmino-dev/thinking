@@ -122,6 +122,9 @@
                 <li>
                   <a class="dropdown-item" href="{{ url_for('auth.logout') }}">LOG OUT</a>
                 </li>
+                <li>
+                  <a class="dropdown-item text-danger" href="{{ url_for('auth.delete_account') }}">DELETE ACCOUNT</a>
+                </li>
               </ul>
             </li>
             {% endif %}

@@ -16,7 +16,7 @@ class Note(db.Model):
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     # These are not columns, but a logical relationship between tables.
     author: Mapped["User"] = relationship("User", back_populates="notes")
-    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="parent_note")
+    comments: Mapped[list["Comment"]] = relationship("Comment", back_populates="parent_note", cascade="all, delete-orphan")
 
     def is_visible_to(self, user) -> bool:
         if self.is_public:

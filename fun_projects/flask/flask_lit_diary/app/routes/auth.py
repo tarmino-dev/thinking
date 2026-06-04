@@ -1,9 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, flash
+from flask import Blueprint, render_template, redirect, url_for, flash, abort
 from app.extensions import db
 from app.models.user import User
-from app.forms.auth_forms import RegisterForm, LoginForm
+from app.forms.auth_forms import RegisterForm, LoginForm, DeleteAccountForm
 from werkzeug.security import generate_password_hash, check_password_hash
-from flask_login import login_user, logout_user
+from flask_login import login_user, logout_user, current_user, login_required
 
 auth_bp = Blueprint("auth", __name__, template_folder="../templates/auth")
 
@@ -59,3 +59,18 @@ def login():
 def logout():
     logout_user()
     return redirect(url_for("main.get_all_notes"))
+
+
+@auth_bp.route('/delete-account', methods=["GET", "POST"])
+@login_required
+def delete_account():
+    if current_user.id == 1:
+        abort(403)
+    form = DeleteAccountForm()
+    if form.validate_on_submit():
+        user = db.session.get(User, current_user.id)
+        db.session.delete(user)
+        db.session.commit()
+        logout_user()
+        return redirect(url_for("main.get_all_notes"))
+    return render_template("delete_account.html", form=form)

@@ -15,3 +15,7 @@ class LoginForm(FlaskForm):
     email = StringField("Email", validators=[DataRequired(), Email()])
     password = PasswordField("Password", validators=[DataRequired()])
     submit = SubmitField("LET ME IN!")
+
+
+class DeleteAccountForm(FlaskForm):
+    submit = SubmitField("DELETE MY ACCOUNT")
