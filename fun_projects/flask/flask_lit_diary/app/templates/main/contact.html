@@ -23,7 +23,13 @@
 {% block wrapper_start %}<main class="mb-4">{% endblock %}
 {% block main_content %}
     <p>
-      Have a suggestion, bug report, or just a kind word? Fill out the form below to send us a message. We value every thought and are always open to improving your experience.
+      Have a suggestion, bug report, or just a kind word? Fill out the form below to send us a message.
+    </p>
+    <p class="text-muted small">
+      Your name, email address, and message will be sent to our team via
+      <a href="https://sendgrid.com" target="_blank" rel="noopener">SendGrid</a>.
+      They will not be stored in our database. See our
+      <a href="{{ url_for('main.privacy') }}">Privacy Policy</a> for details.
     </p>
     <div class="my-5">
       <!-- * * Contact Form * *-->
