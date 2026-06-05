@@ -14,3 +14,14 @@ def test_register_page(client):
     response = client.get("/register")
     assert response.status_code == 200
     assert b"Register" in response.data
+
+
+def test_privacy_page(client):
+    response = client.get("/privacy")
+    assert response.status_code == 200
+    assert b"Privacy" in response.data
+
+
+def test_contact_page_has_sendgrid_notice(client):
+    response = client.get("/contact")
+    assert b"SendGrid" in response.data

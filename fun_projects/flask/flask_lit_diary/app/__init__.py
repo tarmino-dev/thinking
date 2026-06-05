@@ -15,6 +15,7 @@ def create_app():
     bootstrap.init_app(app)
     gravatar.init_app(app)
     login_manager.init_app(app)
+    login_manager.login_view = "auth.login"
 
     # Blueprint registration
     app.register_blueprint(main_bp)

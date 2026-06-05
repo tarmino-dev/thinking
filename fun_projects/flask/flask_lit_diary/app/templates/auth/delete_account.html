@@ -1,0 +1,35 @@
+{% include "header.html" %}
+
+<header class="masthead" style="background-image: url('{{ url_for('static', filename='assets/img/login-bg.png') }}')">
+  <div class="container position-relative px-4 px-lg-5">
+    <div class="row gx-4 gx-lg-5 justify-content-center">
+      <div class="col-md-10 col-lg-8 col-xl-7">
+        <div class="page-heading">
+          <h1>Delete Account</h1>
+          <span class="subheading">This action cannot be undone</span>
+        </div>
+      </div>
+    </div>
+  </div>
+</header>
+
+<main class="mb-4">
+  <div class="container">
+    <div class="row">
+      <div class="col-lg-8 col-md-10 mx-auto">
+        <p class="mb-4">
+          Deleting your account will permanently remove your profile, all your
+          notes, and all comments — including comments left by others on your
+          notes.
+        </p>
+        <form method="POST">
+          {{ form.hidden_tag() }}
+          <button type="submit" class="btn btn-danger me-2">DELETE MY ACCOUNT</button>
+          <a href="{{ url_for('main.get_all_notes') }}" class="btn btn-secondary">CANCEL</a>
+        </form>
+      </div>
+    </div>
+  </div>
+</main>
+
+{% include "footer.html" %}
