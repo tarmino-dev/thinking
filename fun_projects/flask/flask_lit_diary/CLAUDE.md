@@ -38,3 +38,9 @@ For architecture discussions:
 - Distinguish between immediate fixes and long-term improvements.
 - Do not introduce new architectural patterns unless explicitly requested.
 - Do not introduce service, repository, factory, manager, or similar layers unless there is a clear need.
+Execution Safety Rule:
+- Never assume system Python environment is correctly configured.
+- If execution fails:
+  1. Do not try random fixes
+  2. Inspect import/runtime error
+  3. Suggest correct environment setup step
