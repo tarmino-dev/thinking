@@ -1,6 +1,7 @@
 from app.extensions import db
 from sqlalchemy.orm import Mapped, mapped_column, relationship
-from sqlalchemy import Integer, String, Text, ForeignKey, Boolean
+from sqlalchemy import Integer, String, Text, ForeignKey, Boolean, DateTime
+from datetime import datetime, timezone
 
 
 class Note(db.Model):
@@ -13,6 +14,7 @@ class Note(db.Model):
     img_url: Mapped[str] = mapped_column(String(250), nullable=True)
     book: Mapped[str | None] = mapped_column(String(250), nullable=True)
     is_public: Mapped[bool] = mapped_column(Boolean, nullable=False, default=True)
+    created_at: Mapped[datetime | None] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), nullable=True)
     author_id: Mapped[int] = mapped_column(Integer, ForeignKey("users.id"))
     # These are not columns, but a logical relationship between tables.
     author: Mapped["User"] = relationship("User", back_populates="notes")

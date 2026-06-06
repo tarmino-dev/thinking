@@ -91,3 +91,17 @@ def test_note_author_relationship(app):
 
         assert len(user.notes) == 1
         assert user.notes[0].title == "Relationship Test"
+
+
+def test_note_created_at_is_auto_set(app):
+    from datetime import datetime, timedelta, timezone
+    with app.app_context():
+        user = User(email="ts@example.com", password="pw", name="TS User")
+        db.session.add(user)
+        db.session.commit()
+        note = Note(title="TS Note", subtitle="Sub", date="2026-01-01", body="Body", author=user)
+        db.session.add(note)
+        db.session.commit()
+        saved = Note.query.filter_by(title="TS Note").first()
+        assert saved.created_at is not None
+        assert saved.created_at >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=5)
