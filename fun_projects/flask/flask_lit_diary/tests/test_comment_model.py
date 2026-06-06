@@ -68,3 +68,18 @@ def test_comment_without_author_or_note(app):
         db.session.add(comment)
         with pytest.raises(Exception):
             db.session.commit()
+
+
+def test_comment_created_at_is_auto_set(app):
+    from datetime import datetime, timedelta, timezone
+    with app.app_context():
+        user = User(email="cts@example.com", password="pw", name="CTS User")
+        note = Note(title="TS Parent Note", subtitle="Sub", date="2026-01-01", body="Body", author=user, is_public=True)
+        db.session.add_all([user, note])
+        db.session.commit()
+        comment = Comment(text="TS comment", author_id=user.id, note_id=note.id)
+        db.session.add(comment)
+        db.session.commit()
+        saved = Comment.query.filter_by(text="TS comment").first()
+        assert saved.created_at is not None
+        assert saved.created_at >= datetime.now(timezone.utc).replace(tzinfo=None) - timedelta(seconds=5)
