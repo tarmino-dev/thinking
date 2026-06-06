@@ -21,7 +21,7 @@ def register():
         hash_and_salted_password = generate_password_hash(
             password=password,
             method="pbkdf2:sha256",
-            salt_length=8
+            salt_length=16
         )
         new_user = User(
             email=email,

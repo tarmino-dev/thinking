@@ -58,3 +58,16 @@ def test_comment_avatar_uses_https_gravatar(app, client):
     response = client.get(f"/note/{note_id}")
     assert b"https://secure.gravatar.com/avatar/" in response.data
     assert b"http://www.gravatar.com" not in response.data
+
+
+def test_registered_password_uses_16_char_salt(client, app):
+    client.post("/register", data={
+        "email": "newuser@example.com",
+        "password": "SomeStrongPassw0rd!",
+        "name": "New User",
+    }, follow_redirects=True)
+
+    with app.app_context():
+        user = User.query.filter_by(email="newuser@example.com").first()
+        method, salt, _ = user.password.split("$", 2)
+        assert len(salt) == 16
