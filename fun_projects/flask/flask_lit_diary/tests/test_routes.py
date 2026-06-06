@@ -1,3 +1,7 @@
+from app.extensions import db
+from app.models import User, Note, Comment
+
+
 def test_home_page(client):
     response = client.get("/")
     assert response.status_code == 200
@@ -32,3 +36,25 @@ def test_security_headers_present(client):
     assert response.headers["X-Content-Type-Options"] == "nosniff"
     assert response.headers["X-Frame-Options"] == "DENY"
     assert "max-age" in response.headers["Strict-Transport-Security"]
+
+
+def test_comment_avatar_uses_https_gravatar(app, client):
+    with app.app_context():
+        user = User(email="commenter@example.com", password="hashed", name="Commenter")
+        note = Note(
+            title="Note with a comment",
+            subtitle="Subtitle",
+            date="2026-01-01",
+            body="Body",
+            is_public=True,
+            author=user,
+        )
+        db.session.add_all([user, note])
+        db.session.commit()
+        db.session.add(Comment(text="Nice note!", author_id=user.id, note_id=note.id))
+        db.session.commit()
+        note_id = note.id
+
+    response = client.get(f"/note/{note_id}")
+    assert b"https://secure.gravatar.com/avatar/" in response.data
+    assert b"http://www.gravatar.com" not in response.data

@@ -38,9 +38,14 @@ For architecture discussions:
 - Distinguish between immediate fixes and long-term improvements.
 - Do not introduce new architectural patterns unless explicitly requested.
 - Do not introduce service, repository, factory, manager, or similar layers unless there is a clear need.
+Environment Assumptions:
+- The project uses a virtual environment.
+- Tests must always be run using: python -m pytest
+- If tests fail due to missing dependencies, assume the environment is not activated and ask for clarification before retrying.
 Execution Safety Rule:
-- Never assume system Python environment is correctly configured.
+- Do not assume the Python environment is correctly configured or fully reproducible.
 - If execution fails:
-  1. Do not try random fixes
-  2. Inspect import/runtime error
-  3. Suggest correct environment setup step
+  1. Do not attempt random or speculative fixes.
+  2. Analyze the exact error (import error, runtime error, dependency mismatch, etc.).
+  3. Propose a targeted fix based on the error message.
+  4. If the issue is environment-related, suggest explicit setup changes (e.g., dependencies, Python version, virtualenv, Docker configuration).
