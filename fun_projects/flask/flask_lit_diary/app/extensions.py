@@ -17,6 +17,6 @@ gravatar = Gravatar(size=100,
                     default='retro',
                     force_default=False,
                     force_lower=False,
-                    use_ssl=False,
+                    use_ssl=True,
                     base_url=None)
 login_manager = LoginManager()
