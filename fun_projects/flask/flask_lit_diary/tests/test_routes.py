@@ -25,3 +25,10 @@ def test_privacy_page(client):
 def test_contact_page_has_sendgrid_notice(client):
     response = client.get("/contact")
     assert b"SendGrid" in response.data
+
+
+def test_security_headers_present(client):
+    response = client.get("/")
+    assert response.headers["X-Content-Type-Options"] == "nosniff"
+    assert response.headers["X-Frame-Options"] == "DENY"
+    assert "max-age" in response.headers["Strict-Transport-Security"]

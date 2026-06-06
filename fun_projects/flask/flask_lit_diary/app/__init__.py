@@ -27,6 +27,13 @@ def create_app():
     # IMPORTANT: Import user_loader only after login_manager is ready
     from app.models import user_loader
 
+    @app.after_request
+    def set_security_headers(response):
+        response.headers["X-Content-Type-Options"] = "nosniff"
+        response.headers["X-Frame-Options"] = "DENY"
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        return response
+
     # Tables Creation
     with app.app_context():
         db.create_all()
