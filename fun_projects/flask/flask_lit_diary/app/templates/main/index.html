@@ -27,8 +27,7 @@
           <!-- note.author is now a User object -->
           <a href="#">{{note.author.name}}</a>
           on {{note.date}}
-          <!-- Only show delete button if user id is 1 (admin user) -->
-          {% if current_user.id == 1 %}
+          {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.id == 1) %}
           <a href="{{ url_for('notes.delete_note', note_id=note.id) }}">✘</a>
           {% endif %}
         </p>
