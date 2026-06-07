@@ -60,6 +60,16 @@ def test_comment_avatar_uses_https_gravatar(app, client):
     assert b"http://www.gravatar.com" not in response.data
 
 
+def test_cookie_banner_present_on_home(client):
+    response = client.get("/")
+    assert b"cookie-banner" in response.data
+
+
+def test_cookie_banner_links_to_privacy(client):
+    response = client.get("/")
+    assert b"/privacy" in response.data
+
+
 def test_registered_password_uses_16_char_salt(client, app):
     client.post("/register", data={
         "email": "newuser@example.com",
