@@ -3,7 +3,6 @@ from app.extensions import db
 from app.models.note import Note
 from app.models.comment import Comment
 from app.forms.note_forms import CreateNoteForm, CommentForm
-from app.utils.decorators import admin_only
 from flask_login import current_user, login_required
 from datetime import date
 
@@ -86,11 +85,12 @@ def edit_note(note_id):
     return render_template("make-note.html", form=edit_form, is_edit=True)
 
 
-# Use a decorator so only an admin user can delete a note
 @notes_bp.route("/delete/<int:note_id>")
-@admin_only
+@login_required
 def delete_note(note_id):
     note_to_delete = db.get_or_404(Note, note_id)
+    if not _can_edit_note(note_to_delete):
+        abort(403)
     db.session.delete(note_to_delete)
     db.session.commit()
     return redirect(url_for("main.get_all_notes"))
