@@ -40,5 +40,24 @@
       <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.2.3/dist/js/bootstrap.bundle.min.js"></script>
       <!-- Core theme JS-->
       <script src="{{ url_for('static', filename='js/scripts.js') }}"></script>
+      <!-- Cookie consent banner -->
+      <div id="cookie-banner" class="fixed-bottom bg-dark text-white py-3 px-4 d-flex align-items-center justify-content-between gap-3" style="display:none!important">
+        <span class="small">
+          This site uses a session cookie for authentication. No analytics or third-party tracking.
+          <a href="{{ url_for('main.privacy') }}" class="text-white">Privacy Policy</a>
+        </span>
+        <button id="cookie-ok" class="btn btn-sm btn-light flex-shrink-0">OK</button>
+      </div>
+      <script>
+        (function() {
+          if (!localStorage.getItem('cookie_consent')) {
+            document.getElementById('cookie-banner').style.display = '';
+          }
+          document.getElementById('cookie-ok').addEventListener('click', function() {
+            localStorage.setItem('cookie_consent', '1');
+            document.getElementById('cookie-banner').style.display = 'none';
+          });
+        })();
+      </script>
   </body>
 </html>
