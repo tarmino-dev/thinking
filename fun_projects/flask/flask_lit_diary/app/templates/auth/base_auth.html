@@ -26,6 +26,7 @@
       <div class="col-lg-8 col-md-10 mx-auto">
         <!--render login form here-->
         {{ render_form(form, novalidate=True, button_map={"submit": "primary"}) }}
+        {% block below_form %}{% endblock %}
       </div>
     </div>
   </div>
