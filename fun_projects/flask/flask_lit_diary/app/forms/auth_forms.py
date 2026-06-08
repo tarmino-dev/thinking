@@ -1,6 +1,6 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
-from wtforms.validators import DataRequired, Email
+from wtforms.validators import DataRequired, Email, EqualTo
 
 # Create a RegisterForm to register new users
 class RegisterForm(FlaskForm):
@@ -19,3 +19,14 @@ class LoginForm(FlaskForm):
 
 class DeleteAccountForm(FlaskForm):
     submit = SubmitField("DELETE MY ACCOUNT")
+
+
+class ResetRequestForm(FlaskForm):
+    email = StringField("Email", validators=[DataRequired(), Email()])
+    submit = SubmitField("SEND RESET LINK")
+
+
+class ResetPasswordForm(FlaskForm):
+    password = PasswordField("New Password", validators=[DataRequired()])
+    confirm = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('password', message="Passwords must match.")])
+    submit = SubmitField("SET NEW PASSWORD")
