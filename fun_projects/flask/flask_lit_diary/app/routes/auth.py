@@ -76,6 +76,12 @@ def logout():
     return redirect(url_for("main.get_all_notes"))
 
 
+@auth_bp.route('/account')
+@login_required
+def account():
+    return render_template('account.html')
+
+
 @auth_bp.route('/delete-account', methods=["GET", "POST"])
 @login_required
 def delete_account():
