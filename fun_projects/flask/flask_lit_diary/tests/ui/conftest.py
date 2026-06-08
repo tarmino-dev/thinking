@@ -28,6 +28,12 @@ def driver():
 
     driver = webdriver.Chrome(options=chrome_options)
 
+    # Dismiss the cookie consent banner for the entire session by setting
+    # localStorage before any test runs. Requires a navigation to establish
+    # the origin first.
+    driver.get(os.getenv("BASE_URL", "http://localhost:5000"))
+    driver.execute_script("localStorage.setItem('cookie_consent', '1')")
+
     yield driver
 
     # Quit browser after all tests finish
