@@ -5,6 +5,7 @@ class Config:
     SESSION_COOKIE_HTTPONLY = True
     SESSION_COOKIE_SAMESITE = 'Lax'
     SESSION_COOKIE_SECURE = os.environ.get('SESSION_COOKIE_SECURE', 'false').lower() == 'true'
+    BOOTSTRAP_SERVE_LOCAL = True
     GMAIL_EMAIL = os.environ.get('GMAIL_EMAIL')
     SENDGRID_API_KEY = os.environ.get('SENDGRID_API_KEY')
 
