@@ -70,6 +70,70 @@ def test_cookie_banner_links_to_privacy(client):
     assert b"/privacy" in response.data
 
 
+def test_account_page_requires_auth(client):
+    response = client.get("/account")
+    assert response.status_code == 302
+    assert "/login" in response.headers["Location"]
+
+
+def test_account_page_loads(client, app):
+    with app.app_context():
+        user = User(email="acct@example.com", password="hashed", name="Acct User")
+        db.session.add(user)
+        db.session.commit()
+        uid = user.id
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(uid)
+        sess["_fresh"] = True
+    response = client.get("/account")
+    assert response.status_code == 200
+    assert b"Account Settings" in response.data
+
+
+def test_account_page_has_export_link(client, app):
+    with app.app_context():
+        user = User(email="acct2@example.com", password="hashed", name="Acct User2")
+        db.session.add(user)
+        db.session.commit()
+        uid = user.id
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(uid)
+        sess["_fresh"] = True
+    response = client.get("/account")
+    assert b"/api/v1/export" in response.data
+
+
+def test_account_page_has_delete_link_for_regular_user(client, app):
+    with app.app_context():
+        # Insert a placeholder first so the regular user gets id > 1
+        placeholder = User(email="admin@placeholder.com", password="hashed", name="Admin")
+        db.session.add(placeholder)
+        db.session.commit()
+        user = User(email="acct3@example.com", password="hashed", name="Acct User3")
+        db.session.add(user)
+        db.session.commit()
+        uid = user.id
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(uid)
+        sess["_fresh"] = True
+    response = client.get("/account")
+    assert b"/delete-account" in response.data
+
+
+def test_account_page_hides_delete_for_admin(client, app):
+    with app.app_context():
+        admin = User(email="admin@example.com", password="hashed", name="Admin")
+        db.session.add(admin)
+        db.session.commit()
+        admin_id = admin.id
+    with client.session_transaction() as sess:
+        sess["_user_id"] = str(admin_id)
+        sess["_fresh"] = True
+    response = client.get("/account")
+    assert response.status_code == 200
+    assert b"/delete-account" not in response.data
+
+
 def test_registered_password_uses_16_char_salt(client, app):
     client.post("/register", data={
         "email": "newuser@example.com",
