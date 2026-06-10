@@ -6,10 +6,17 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 ## Features
 
 - Create, edit, and delete personal notes  
-- Optional `book` field for notes, which utilizes the Open Library API for book search.  
-- User authentication (register/login/logout)  
-- Clean and cozy interface with warm, book-like tones  
+- Public/private note visibility — keep notes to yourself or share them with all visitors  
+- "My Notes" personal feed — see all your notes, including private ones  
+- Optional `book` field for notes, which utilizes the Open Library API for book search  
+- User authentication (register, login, logout)  
+- Password reset via email link  
+- Account Settings page — download your data, change your password, or delete your account  
+- GDPR data export — download all your notes and comments as JSON  
+- Privacy Policy page and cookie consent banner  
 - Contact form with SendGrid email integration  
+- Self-hosted fonts and icons — no CDN calls to Google Fonts or Font Awesome  
+- Clean and cozy interface with warm, book-like tones  
 - Structured templates powered by Flask Blueprints  
 - SQLite or PostgreSQL database support  
 - Gravatar integration for user avatars  
@@ -56,10 +63,10 @@ The project follows a modular Flask architecture:
 ### 4. Notes on SendGrid setup
 
 1. Sign up at https://sendgrid.com
-2. In your SendGrid dashboard, go to Settings → API Keys and create a new key with “Full Access” or “Mail Send” permissions.
+2. In your SendGrid dashboard, go to Settings → API Keys and create a new key with "Full Access" or "Mail Send" permissions.
 3. Verify your sender identity in Settings → Sender Authentication → Single Sender Verification.
-4. The email you verify here must match the value of GMAIL_EMAIL in your environment variables (see below).
-5. Once verified, you’ll be able to send emails through your Flask contact form.
+4. The email you verify here must match the value of `GMAIL_EMAIL` in your environment variables (see below).
+5. Once verified, you'll be able to send emails through your Flask contact form and password reset flow.
 
 ### 5. Set environment variables
 
@@ -70,6 +77,12 @@ Add the following lines to your shell configuration file:
 `export SQLALCHEMY_DATABASE_URI=sqlite:///literature_diary.db`  
 `export GMAIL_EMAIL=your_verified_sender@example.com`  
 `export SENDGRID_API_KEY=your_sendgrid_api_key`
+
+> **Note:** `GMAIL_EMAIL` is the SendGrid verified sender address used for outgoing email (contact form replies and password reset links). It does not have to be a Gmail address — any address verified with SendGrid works.
+
+For production deployments served over HTTPS, also set:
+
+`export SESSION_COOKIE_SECURE=true`
 
 After editing, reload your terminal session or run:
 
@@ -84,6 +97,24 @@ The application is launched by running the main.py file located in the project r
 Then open your browser and visit:
 
 http://localhost:5000
+
+## Running Tests
+
+The test suite is split into unit/API tests (no server required) and browser tests (requires a running server).
+
+### Unit and API tests
+
+`python -m pytest tests/ --ignore=tests/ui -q`
+
+These tests run against an in-memory SQLite database and do not require any environment setup beyond installing dependencies.
+
+### Browser tests (Selenium)
+
+Start the application first (`python main.py`), then in a separate terminal:
+
+`python -m pytest tests/ui/ -v`
+
+Selenium tests require Google Chrome and `chromedriver` to be installed. The base URL defaults to `http://localhost:5000` and can be overridden with the `BASE_URL` environment variable.
 
 ## Deployment
 
@@ -106,17 +137,19 @@ The API coexists with the HTML-based interface and follows REST principles.
 ```
 
 ### Authentication
-- Read operations are public.
-- Write operations require authentication.
+- `GET /api/v1/notes` returns all public notes without authentication. Authenticated users also receive their own private notes in the response.
+- Write operations (create, update, delete) require authentication.
 - Authentication is session-based (Flask-Login).
 - Only the owner of a resource can update or delete it.
 
 ### Notes Endpoints
 
-#### Get all notes (public)
+#### Get all notes
 ```
 GET /api/v1/notes
 ```
+
+Returns public notes. Authenticated users also see their own private notes.
 
 Response example:
 ```json
@@ -208,9 +241,55 @@ Responses:
 - `403 Forbidden`
 - `404 Not Found`
 
+---
+
+### Data Export Endpoint
+
+#### Export your data (authenticated)
+```
+GET /api/v1/export
+```
+
+Returns the authenticated user's full profile, notes, and comments as JSON. This endpoint implements the GDPR right to data portability (Art. 20) and is also accessible from the Account Settings page in the UI.
+
+Response example:
+```json
+{
+  "profile": {
+    "id": 1,
+    "email": "user@example.com",
+    "name": "Alice"
+  },
+  "notes": [
+    {
+      "id": 3,
+      "title": "My Note",
+      "subtitle": "A subtitle",
+      "date": "June 01, 2026",
+      "body": "<p>…</p>",
+      "img_url": null,
+      "book": "Dune",
+      "is_public": true
+    }
+  ],
+  "comments": [
+    {
+      "id": 7,
+      "text": "<p>Great book!</p>",
+      "note_id": 5,
+      "note_title": "Another Note"
+    }
+  ]
+}
+```
+
+Responses:
+- `200 OK`
+- `401 Unauthorized`
+
 ### API Testing
 
-The API is covered by automated tests written with `pytest` using Flask’s test client.
+The API is covered by automated tests written with `pytest` using Flask's test client.
 
 Test location:
 ```
@@ -227,16 +306,11 @@ Each endpoint is tested for both successful and error scenarios (authentication,
 - Bootstrap 5
 - CKEditor
 - SendGrid API
-- Render (deployment)
-
-## Screenshots
-
-(To be added)
 
 ## Author
 
 Literature Diary is developed by tarmino-dev.
-Inspired by the timeless art of journaling and the “Blog” project concept from the [100 Days of Python](https://www.udemy.com/course/100-days-of-code/) course, modernized and refactored for production-style readability.
+Inspired by the timeless art of journaling and the "Blog" project concept from the [100 Days of Python](https://www.udemy.com/course/100-days-of-code/) course, modernized and refactored for production-style readability.
 
 ## License
 
