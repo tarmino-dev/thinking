@@ -1,7 +1,7 @@
 {% extends "base_auth.html" %}
 {% set background_image_url = '../static/assets/img/login-bg.png' %}
-{% block header_title %}Forgot Password{% endblock %}
-{% block subheading %}Enter your email to receive a reset link.{% endblock %}
+{% block header_title %}{{ t('auth_forgot_title') }}{% endblock %}
+{% block subheading %}{{ t('auth_forgot_subtitle') }}{% endblock %}
 {% block flash_message %}
   {% with messages = get_flashed_messages() %}
   {% if messages %}

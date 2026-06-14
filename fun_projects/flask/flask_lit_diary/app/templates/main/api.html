@@ -2,24 +2,23 @@
 {% set background_image_url = '../static/assets/img/api_docs-bg.png' %}
 {% block heading %}
     <div class="page-heading">
-        <h1>API Documentation</h1>
-        <span class="subheading">REST API for the Literature Diary.</span>
+        <h1>{{ t('api_title') }}</h1>
+        <span class="subheading">{{ t('api_subtitle') }}</span>
     </div>
 {% endblock %}
 {% block wrapper_start %}<main class="mb-4">{% endblock %}
 {% block main_content %}
-    <h2 class="mb-4">API Overview</h2>
+    <h2 class="mb-4">{{ t('api_overview_heading') }}</h2>
 
 <div class="card mb-4">
     <div class="card-body">
         <p class="mb-0">
-            The Literature Diary API provides programmatic access to public notes
-            and allows authenticated users to create, update, and delete their own content.
+            {{ t('api_overview_body') }}
         </p>
     </div>
 </div>
 
-<h3 class="mt-5">Base URL</h3>
+<h3 class="mt-5">{{ t('api_base_url_heading') }}</h3>
 
 <div class="card mb-4">
     <div class="card-body">
@@ -27,26 +26,26 @@
     </div>
 </div>
 
-<h3 class="mt-5">Authentication</h3>
+<h3 class="mt-5">{{ t('api_auth_heading') }}</h3>
 
 <div class="card mb-4">
     <div class="card-body">
         <ul class="mb-0">
-            <li><strong>Public:</strong> read-only access to notes</li>
-            <li><strong>Authenticated:</strong> create, update, and delete notes</li>
-            <li>Session-based authentication using <code>Flask-Login</code></li>
+            <li><strong>{{ t('api_auth_public_label') }}</strong> {{ t('api_auth_public') }}</li>
+            <li><strong>{{ t('api_auth_authenticated_label') }}</strong> {{ t('api_auth_authenticated') }}</li>
+            <li>{{ t('api_auth_session') }} <code>Flask-Login</code></li>
         </ul>
     </div>
 </div>
 
-<h3 class="mt-5">Notes Endpoints</h3>
+<h3 class="mt-5">{{ t('api_notes_heading') }}</h3>
 
 <div class="card mb-3">
     <div class="card-body">
         <span class="badge bg-success me-2">GET</span>
         <code>/api/v1/notes</code>
         <p class="mt-2 mb-0 text-muted">
-            List notes: anonymous users see only public ones; signed-in users also see their private notes; site admin (<code>id</code> 1) sees all. Each item includes boolean <code>is_public</code>.
+            {{ t('api_get_desc') }}<code>id</code>{{ t('api_get_desc_2') }} <code>is_public</code>.
         </p>
     </div>
 </div>
@@ -56,7 +55,7 @@
         <span class="badge bg-primary me-2">POST</span>
         <code>/api/v1/notes</code>
         <p class="mt-2 mb-0 text-muted">
-            Create a new note (authentication required). Request body may include optional boolean <code>is_public</code> (default public); the created note and list/detail responses include <code>is_public</code>.
+            {{ t('api_post_desc') }} <code>is_public</code>{{ t('api_post_desc_2') }} <code>is_public</code>.
         </p>
     </div>
 </div>
@@ -66,7 +65,7 @@
         <span class="badge bg-warning text-dark me-2">PUT</span>
         <code>/api/v1/notes/&lt;id&gt;</code>
         <p class="mt-2 mb-0 text-muted">
-            Update an existing note (owner only); you can change visibility with <code>is_public</code>, reflected in the JSON response.
+            {{ t('api_put_desc') }} <code>is_public</code>{{ t('api_put_desc_2') }}
         </p>
     </div>
 </div>
@@ -76,10 +75,10 @@
         <span class="badge bg-danger me-2">DELETE</span>
         <code>/api/v1/notes/&lt;id&gt;</code>
         <p class="mt-2 mb-0 text-muted">
-            Delete a note (owner only).
+            {{ t('api_delete_desc') }}
         </p>
         <p class="mt-2 mb-0">
-            <small><code>id</code> — integer note identifier</small>
+            <small><code>id</code> — {{ t('api_delete_id') }}</small>
         </p>
     </div>
 </div>
@@ -87,8 +86,8 @@
 <hr>
 
 <p>
-Full API description and examples are available on
-<a href="https://github.com/tarmino-dev/thinking/tree/blog_to_deploy/fun_projects/flask/flask_lit_diary" target="_blank">GitHub</a>.
+{{ t('api_footer_pre') }}
+<a href="https://github.com/tarmino-dev/thinking/tree/blog_to_deploy/fun_projects/flask/flask_lit_diary" target="_blank">{{ t('api_footer_link') }}</a>.
 </p>
 {% endblock %}
 {% block wrapper_end %}</main>{% endblock %}

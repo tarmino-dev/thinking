@@ -30,7 +30,7 @@
                           </li>
                       </ul>
                       <div class="small text-center text-muted">
-                          <a href="{{ url_for('main.privacy') }}">Privacy Policy</a>
+                          <a href="{{ url_for('main.privacy') }}">{{ t('footer_privacy') }}</a>
                       </div>
                   </div>
               </div>
@@ -43,10 +43,10 @@
       <!-- Cookie consent banner -->
       <div id="cookie-banner" class="fixed-bottom bg-dark text-white py-3 px-4" style="display:none; flex-wrap:wrap; align-items:center; justify-content:space-between; gap:1rem">
         <span class="small">
-          This site uses a session cookie for authentication. No analytics or third-party tracking.
-          <a href="{{ url_for('main.privacy') }}" class="text-white">Privacy Policy</a>
+          {{ t('cookie_text') }}
+          <a href="{{ url_for('main.privacy') }}" class="text-white">{{ t('footer_privacy') }}</a>
         </span>
-        <button id="cookie-ok" class="btn btn-sm btn-light flex-shrink-0">OK</button>
+        <button id="cookie-ok" class="btn btn-sm btn-light flex-shrink-0">{{ t('cookie_ok') }}</button>
       </div>
       <script>
         (function() {

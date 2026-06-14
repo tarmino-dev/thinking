@@ -1,6 +1,6 @@
 {% extends "base_auth.html" %}
 {% set background_image_url = '../static/assets/img/register-bg.png' %}
-{% block header_title %}Register{% endblock %}
-{% block subheading %}Join our community of readers.{% endblock %}
+{% block header_title %}{{ t('auth_register_title') }}{% endblock %}
+{% block subheading %}{{ t('auth_register_subtitle') }}{% endblock %}
 {% block flash_message %}
 {% endblock %}

@@ -4,6 +4,7 @@ from app.routes import auth_bp, main_bp, notes_bp
 from app.models import Comment, Note, User # Models importing, so that db.create_all() could see them
 from app.api.books import books_bp
 from app.api.v1 import api_v1
+from app.i18n import translate, get_locale, LANGUAGES
 
 def create_app():
     app = Flask(__name__)
@@ -26,6 +27,11 @@ def create_app():
 
     # IMPORTANT: Import user_loader only after login_manager is ready
     from app.models import user_loader
+
+    # Make translation helpers available to all templates
+    @app.context_processor
+    def inject_i18n():
+        return {"t": translate, "current_lang": get_locale(), "languages": LANGUAGES}
 
     @app.after_request
     def set_security_headers(response):

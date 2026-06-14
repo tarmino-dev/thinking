@@ -2,81 +2,81 @@
 {% set background_image_url = '../static/assets/img/about-bg.png' %}
 {% block heading %}
     <div class="page-heading">
-        <h1>Privacy Policy</h1>
-        <span class="subheading">How we collect, use, and protect your data.</span>
+        <h1>{{ t('privacy_title') }}</h1>
+        <span class="subheading">{{ t('privacy_subtitle') }}</span>
     </div>
 {% endblock %}
 {% block wrapper_start %}<main class="mb-4">{% endblock %}
 {% block main_content %}
-    <p class="text-muted small">Last updated: June 2026</p>
+    <p class="text-muted small">{{ t('privacy_last_updated') }}</p>
 
-    <h2 class="h4 mt-4">1. Data We Collect</h2>
-    <p>When you register and use Literary Diary, we store the following personal data:</p>
+    <h2 class="h4 mt-4">{{ t('privacy_h1') }}</h2>
+    <p>{{ t('privacy_collect_intro') }}</p>
     <ul>
-        <li><strong>Account information</strong> — your email address, display name, and a hashed (PBKDF2-SHA256) copy of your password. Your plain-text password is never stored.</li>
-        <li><strong>Notes</strong> — title, subtitle, body, book title, date, cover image URL, and visibility setting (public or private).</li>
-        <li><strong>Comments</strong> — the text of comments you post on notes.</li>
+        <li><strong>{{ t('privacy_collect_account_label') }}</strong> {{ t('privacy_collect_account') }}</li>
+        <li><strong>{{ t('privacy_collect_notes_label') }}</strong> {{ t('privacy_collect_notes') }}</li>
+        <li><strong>{{ t('privacy_collect_comments_label') }}</strong> {{ t('privacy_collect_comments') }}</li>
     </ul>
-    <p>We do <strong>not</strong> store contact form submissions locally. Messages sent through the contact form are forwarded via SendGrid (see Section 3) and are not retained in our database.</p>
+    <p>{{ t('privacy_collect_no_contact') }} <strong>{{ t('privacy_collect_no_contact_strong') }}</strong> {{ t('privacy_collect_no_contact_2') }}</p>
 
-    <h2 class="h4 mt-4">2. Cookies</h2>
-    <p>We set a single session cookie when you log in. It keeps you authenticated while you browse. It is deleted when your session ends.</p>
-    <p>We use <strong>no analytics cookies</strong>, advertising cookies, or third-party tracking cookies.</p>
+    <h2 class="h4 mt-4">{{ t('privacy_h2') }}</h2>
+    <p>{{ t('privacy_cookies_p1') }}</p>
+    <p>{{ t('privacy_cookies_p2_pre') }} <strong>{{ t('privacy_cookies_p2_strong') }}</strong>{{ t('privacy_cookies_p2_post') }}</p>
 
-    <h2 class="h4 mt-4">3. Third-Party Processors</h2>
-    <p>Using the site causes your browser to contact several external services. Each receives limited technical data (typically your IP address and browser User-Agent):</p>
+    <h2 class="h4 mt-4">{{ t('privacy_h3') }}</h2>
+    <p>{{ t('privacy_third_party_intro') }}</p>
     <table class="table table-sm table-bordered mt-2">
         <thead class="table-light">
             <tr>
-                <th>Service</th>
-                <th>When contacted</th>
-                <th>Data sent</th>
+                <th>{{ t('privacy_table_service') }}</th>
+                <th>{{ t('privacy_table_when') }}</th>
+                <th>{{ t('privacy_table_data') }}</th>
             </tr>
         </thead>
         <tbody>
             <tr>
                 <td>Gravatar</td>
-                <td>Pages that show comments</td>
-                <td>An MD5 hash of your email address, used to load your avatar</td>
+                <td>{{ t('privacy_gravatar_when') }}</td>
+                <td>{{ t('privacy_gravatar_data') }}</td>
             </tr>
             <tr>
                 <td>SendGrid</td>
-                <td>When you submit the contact form</td>
-                <td>Your name, email address, and message</td>
+                <td>{{ t('privacy_sendgrid_when') }}</td>
+                <td>{{ t('privacy_sendgrid_data') }}</td>
             </tr>
             <tr>
                 <td>Google Fonts CDN</td>
-                <td>Every page load</td>
-                <td>IP address, browser User-Agent, timestamp</td>
+                <td>{{ t('privacy_gfonts_when') }}</td>
+                <td>{{ t('privacy_gfonts_data') }}</td>
             </tr>
             <tr>
                 <td>Font Awesome CDN</td>
-                <td>Every page load</td>
-                <td>IP address, browser User-Agent, timestamp</td>
+                <td>{{ t('privacy_fa_when') }}</td>
+                <td>{{ t('privacy_fa_data') }}</td>
             </tr>
             <tr>
                 <td>jsDelivr (Bootstrap JS)</td>
-                <td>Every page load</td>
-                <td>IP address, browser User-Agent, timestamp</td>
+                <td>{{ t('privacy_jsdelivr_when') }}</td>
+                <td>{{ t('privacy_jsdelivr_data') }}</td>
             </tr>
             <tr>
                 <td>Open Library API</td>
-                <td>When you search for a book while writing a note</td>
-                <td>Your search query</td>
+                <td>{{ t('privacy_openlibrary_when') }}</td>
+                <td>{{ t('privacy_openlibrary_data') }}</td>
             </tr>
         </tbody>
     </table>
 
-    <h2 class="h4 mt-4">4. Your Rights</h2>
-    <p>Under the General Data Protection Regulation (GDPR) you have the following rights over your personal data:</p>
+    <h2 class="h4 mt-4">{{ t('privacy_h4') }}</h2>
+    <p>{{ t('privacy_rights_intro') }}</p>
     <ul>
-        <li><strong>Right of access and portability (Art. 15, 20)</strong> — You can download a full copy of your data (profile, notes, and comments) in JSON format at any time via the <a href="/api/v1/export">data export endpoint</a>.</li>
-        <li><strong>Right to rectification (Art. 16)</strong> — You can edit or update any note you have written from within the app.</li>
-        <li><strong>Right to erasure (Art. 17)</strong> — You can permanently delete your account, including all your notes and comments, from the account menu (DELETE ACCOUNT). This action is irreversible.</li>
-        <li><strong>Right to restrict processing or object (Art. 18, 21)</strong> — You can set any note to private at any time, limiting its visibility to yourself only. For broader restrictions or objections, contact us using the details below.</li>
+        <li><strong>{{ t('privacy_rights_access_label') }}</strong> {{ t('privacy_rights_access_pre') }} <a href="/api/v1/export">{{ t('privacy_rights_access_link') }}</a>{{ t('privacy_rights_access_post') }}</li>
+        <li><strong>{{ t('privacy_rights_rectification_label') }}</strong> {{ t('privacy_rights_rectification') }}</li>
+        <li><strong>{{ t('privacy_rights_erasure_label') }}</strong> {{ t('privacy_rights_erasure') }}</li>
+        <li><strong>{{ t('privacy_rights_restrict_label') }}</strong> {{ t('privacy_rights_restrict') }}</li>
     </ul>
 
-    <h2 class="h4 mt-4">5. Contact</h2>
-    <p>For any privacy-related requests not covered by the self-service options above, please use the <a href="{{ url_for('main.contact') }}">contact form</a>.</p>
+    <h2 class="h4 mt-4">{{ t('privacy_h5') }}</h2>
+    <p>{{ t('privacy_contact_pre') }} <a href="{{ url_for('main.contact') }}">{{ t('privacy_contact_link') }}</a>{{ t('privacy_contact_post') }}</p>
 {% endblock %}
 {% block wrapper_end %}</main>{% endblock %}

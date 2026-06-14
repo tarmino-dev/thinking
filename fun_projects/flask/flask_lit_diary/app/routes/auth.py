@@ -6,6 +6,7 @@ from werkzeug.security import generate_password_hash, check_password_hash
 from flask_login import login_user, logout_user, current_user, login_required
 from itsdangerous import URLSafeTimedSerializer
 from app.routes.main import send_email
+from app.i18n import translate
 
 auth_bp = Blueprint("auth", __name__, template_folder="../templates/auth")
 
@@ -29,7 +30,7 @@ def register():
         email = form.email.data
         user = db.session.execute(db.select(User).where(User.email == email)).scalar()
         if user:
-            flash("You've already singed up with that email, log in instead!")
+            flash(translate("flash_email_exists"))
             return redirect(url_for("auth.login"))
         password = form.password.data
         name = form.name.data
@@ -59,13 +60,13 @@ def login():
         password = form.password.data
         user = db.session.execute(db.select(User).where(User.email == email)).scalar()
         if not user:
-            flash("That email does not exist, please retry again.")
+            flash(translate("flash_email_not_found"))
             return redirect(url_for("auth.login"))
         if check_password_hash(user.password, password):
             login_user(user)
             return redirect(url_for("main.get_all_notes"))
         else:
-            flash("Password incorrect, please try again.")
+            flash(translate("flash_password_incorrect"))
             return redirect(url_for("auth.login"))
     return render_template("login.html", form=form)
 
@@ -114,7 +115,7 @@ def forgot_password():
                 ),
                 to_email=user.email,
             )
-        flash("If that email is registered, a reset link has been sent.")
+        flash(translate("flash_reset_sent"))
         return redirect(url_for('auth.login'))
     return render_template('reset_request.html', form=form)
 
@@ -123,7 +124,7 @@ def forgot_password():
 def reset_password(token):
     email = _verify_reset_token(token)
     if email is None:
-        flash("The reset link is invalid or has expired.")
+        flash(translate("flash_reset_invalid"))
         return redirect(url_for('auth.forgot_password'))
     form = ResetPasswordForm()
     if form.validate_on_submit():
@@ -136,6 +137,6 @@ def reset_password(token):
             salt_length=16,
         )
         db.session.commit()
-        flash("Your password has been updated. Please log in.")
+        flash(translate("flash_password_updated"))
         return redirect(url_for('auth.login'))
     return render_template('reset_password.html', form=form)

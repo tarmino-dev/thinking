@@ -10,13 +10,13 @@
           <h1>{{ note.title }}</h1>
           <h2 class="subheading">{{ note.subtitle }}</h2>
           {% if note.book %}
-          <p class="meta mb-2">Book: {{ note.book }}</p>
+          <p class="meta mb-2">{{ t('meta_book') }} {{ note.book }}</p>
           {% endif %}
           <span class="meta"
-            >Posted by
+            >{{ t('meta_posted_by') }}
             <!-- note.author is now a User object -->
             <a href="#">{{ note.author.name }}</a>
-            on {{ note.date }}
+            {{ t('meta_on') }} {{ note.date }}
           </span>
         </div>
       </div>
@@ -32,8 +32,8 @@
         {{ note.body|safe }}
         {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.id == 1) %}
         <div class="d-flex justify-content-end gap-2 mb-4">
-          <a class="btn btn-primary" href="{{ url_for('notes.edit_note', note_id=note.id) }}">Edit Note</a>
-          <a class="btn btn-danger" href="{{ url_for('notes.delete_note', note_id=note.id) }}">Delete Note</a>
+          <a class="btn btn-primary" href="{{ url_for('notes.edit_note', note_id=note.id) }}">{{ t('btn_edit_note') }}</a>
+          <a class="btn btn-danger" href="{{ url_for('notes.delete_note', note_id=note.id) }}">{{ t('btn_delete_note') }}</a>
         </div>
         {% endif %}
 
