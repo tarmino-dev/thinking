@@ -1,3 +1,11 @@
+import os
+
+# Default to an in-memory SQLite database when the environment does not provide
+# one. create_app() runs db.create_all() at app-creation time, before the app
+# fixture overrides the URI, so a valid URI must exist in the environment by then.
+# setdefault never overrides an existing value, so local/CI configs are untouched.
+os.environ.setdefault("SQLALCHEMY_DATABASE_URI", "sqlite:///:memory:")
+
 import pytest
 from app import create_app, db
 
