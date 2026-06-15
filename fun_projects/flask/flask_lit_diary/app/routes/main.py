@@ -1,8 +1,9 @@
-from flask import Blueprint, render_template, redirect, url_for, current_app, flash
+from flask import Blueprint, render_template, redirect, url_for, current_app, flash, session, request
 from flask_login import login_required, current_user
 from app.extensions import db
 from app.models.note import Note
 from app.forms.contact_forms import ContactForm
+from app.i18n import translate, LANGUAGES
 import requests
 
 main_bp = Blueprint("main", __name__, template_folder="../templates/main")
@@ -39,9 +40,9 @@ def contact():
         body = f"Name: {form.name.data}\nEmail: {form.email.data}\nMessage: {form.message.data}"
         success = send_email(subject=subject, body=body)
         if success:
-            flash("Your message has been sent successfully!", "success")
+            flash(translate("flash_message_sent"), "success")
         else:
-            flash("Something went wrong. Please try again later.", "error")
+            flash(translate("flash_message_failed"), "error")
         return redirect(url_for("main.contact"))
     return render_template("contact.html", form=form)
 
@@ -53,6 +54,13 @@ def api_docs():
 @main_bp.route("/privacy")
 def privacy():
     return render_template("privacy.html")
+
+
+@main_bp.route("/set-language/<lang>")
+def set_language(lang):
+    if lang in LANGUAGES:
+        session["lang"] = lang
+    return redirect(request.referrer or url_for("main.get_all_notes"))
 
 def send_email(subject, body, to_email=None):
     """

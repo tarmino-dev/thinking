@@ -5,7 +5,7 @@
     <div class="row gx-4 gx-lg-5 justify-content-center">
       <div class="col-md-10 col-lg-8 col-xl-7">
         <div class="page-heading">
-          <h1>Account Settings</h1>
+          <h1>{{ t('account_title') }}</h1>
           <span class="subheading">{{ current_user.name }}</span>
         </div>
       </div>
@@ -18,24 +18,24 @@
     <div class="row">
       <div class="col-lg-8 col-md-10 mx-auto">
         <dl class="row mb-4">
-          <dt class="col-sm-3">Name</dt>
+          <dt class="col-sm-3">{{ t('account_name') }}</dt>
           <dd class="col-sm-9">{{ current_user.name }}</dd>
-          <dt class="col-sm-3">Email</dt>
+          <dt class="col-sm-3">{{ t('account_email') }}</dt>
           <dd class="col-sm-9">{{ current_user.email }}</dd>
         </dl>
         <div class="d-flex flex-column gap-3">
           <div>
-            <a href="/api/v1/export" class="btn btn-outline-secondary">DOWNLOAD MY DATA</a>
-            <p class="text-muted small mt-1 mb-0">Returns your profile, notes, and comments as JSON.</p>
+            <a href="/api/v1/export" class="btn btn-outline-secondary">{{ t('account_download') }}</a>
+            <p class="text-muted small mt-1 mb-0">{{ t('account_download_help') }}</p>
           </div>
           <div>
-            <a href="{{ url_for('auth.forgot_password') }}" class="btn btn-outline-secondary">CHANGE PASSWORD</a>
-            <p class="text-muted small mt-1 mb-0">A reset link will be sent to your email address.</p>
+            <a href="{{ url_for('auth.forgot_password') }}" class="btn btn-outline-secondary">{{ t('account_change_password') }}</a>
+            <p class="text-muted small mt-1 mb-0">{{ t('account_change_password_help') }}</p>
           </div>
           {% if current_user.id != 1 %}
           <div>
-            <a href="{{ url_for('auth.delete_account') }}" class="btn btn-outline-danger">DELETE ACCOUNT</a>
-            <p class="text-muted small mt-1 mb-0">Permanently removes your account, notes, and comments.</p>
+            <a href="{{ url_for('auth.delete_account') }}" class="btn btn-outline-danger">{{ t('account_delete') }}</a>
+            <p class="text-muted small mt-1 mb-0">{{ t('account_delete_help') }}</p>
           </div>
           {% endif %}
         </div>

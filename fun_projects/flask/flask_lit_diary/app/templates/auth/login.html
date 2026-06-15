@@ -1,7 +1,7 @@
 {% extends "base_auth.html" %}
 {% set background_image_url = '../static/assets/img/login-bg.png' %}
-{% block header_title %}Log In{% endblock %}
-{% block subheading %}Enter your world of books and reflections.{% endblock %}
+{% block header_title %}{{ t('auth_login_title') }}{% endblock %}
+{% block subheading %}{{ t('auth_login_subtitle') }}{% endblock %}
 {% block flash_message %}
       <!-- add a flash message here for: registering twice (registration), not existing login (logging in), invalid password (logging in) -->
         {% with messages = get_flashed_messages() %}
@@ -14,6 +14,6 @@
 {% endblock %}
 {% block below_form %}
   <p class="text-center mt-3 small">
-    <a href="{{ url_for('auth.forgot_password') }}">Forgot your password?</a>
+    <a href="{{ url_for('auth.forgot_password') }}">{{ t('auth_forgot_link') }}</a>
   </p>
 {% endblock %}

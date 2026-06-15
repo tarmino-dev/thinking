@@ -3,11 +3,11 @@
 {% block heading %}
     <div class="site-heading">
       {% if is_my_notes %}
-      <h1>My Notes</h1>
-      <span class="subheading">Notes you have published on Literary Diary.</span>
+      <h1>{{ t('index_my_notes_title') }}</h1>
+      <span class="subheading">{{ t('index_my_notes_subtitle') }}</span>
       {% else %}
-      <h1>Literary Diary</h1>
-      <span class="subheading">A quiet place for readers to record, reflect, and share.</span>
+      <h1>{{ t('site_title') }}</h1>
+      <span class="subheading">{{ t('index_subtitle') }}</span>
       {% endif %}
     </div>
 {% endblock %}
@@ -20,13 +20,13 @@
           <h3 class="post-subtitle">{{ note.subtitle }}</h3>
         </a>
         {% if note.book %}
-        <p class="post-meta mb-1">Book: {{ note.book }}</p>
+        <p class="post-meta mb-1">{{ t('meta_book') }} {{ note.book }}</p>
         {% endif %}
         <p class="post-meta">
-          Posted by
+          {{ t('meta_posted_by') }}
           <!-- note.author is now a User object -->
           <a href="#">{{note.author.name}}</a>
-          on {{note.date}}
+          {{ t('meta_on') }} {{note.date}}
           {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.id == 1) %}
           <a href="{{ url_for('notes.delete_note', note_id=note.id) }}">✘</a>
           {% endif %}
@@ -43,13 +43,13 @@
         <a
           class="btn btn-primary float-right"
           href="{{ url_for('notes.add_new_note')}}"
-          >Create New Note</a
+          >{{ t('btn_create_note') }}</a
         >
       </div>
       {% endif %}
 
       <!-- Pager-->
       <div class="d-flex justify-content-end mb-4">
-        <a class="btn btn-secondary text-uppercase" href="#!">Older Notes →</a>
+        <a class="btn btn-secondary text-uppercase" href="#!">{{ t('btn_older_notes') }}</a>
       </div>
 {% endblock %}

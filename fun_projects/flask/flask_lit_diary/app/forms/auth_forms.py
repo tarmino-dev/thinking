@@ -1,32 +1,33 @@
 from flask_wtf import FlaskForm
 from wtforms import StringField, SubmitField, PasswordField
 from wtforms.validators import DataRequired, Email, EqualTo
+from app.i18n import lazy_translate
 
 # Create a RegisterForm to register new users
 class RegisterForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    name = StringField("Name", validators=[DataRequired()])
-    submit = SubmitField("SIGN ME UP!")
+    email = StringField(lazy_translate("form_email"), validators=[DataRequired(), Email()])
+    password = PasswordField(lazy_translate("form_password"), validators=[DataRequired()])
+    name = StringField(lazy_translate("form_name"), validators=[DataRequired()])
+    submit = SubmitField(lazy_translate("form_sign_up"))
 
 
 # Create a LoginForm to login existing users
 class LoginForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    submit = SubmitField("LET ME IN!")
+    email = StringField(lazy_translate("form_email"), validators=[DataRequired(), Email()])
+    password = PasswordField(lazy_translate("form_password"), validators=[DataRequired()])
+    submit = SubmitField(lazy_translate("form_log_in"))
 
 
 class DeleteAccountForm(FlaskForm):
-    submit = SubmitField("DELETE MY ACCOUNT")
+    submit = SubmitField(lazy_translate("form_delete_account"))
 
 
 class ResetRequestForm(FlaskForm):
-    email = StringField("Email", validators=[DataRequired(), Email()])
-    submit = SubmitField("SEND RESET LINK")
+    email = StringField(lazy_translate("form_email"), validators=[DataRequired(), Email()])
+    submit = SubmitField(lazy_translate("form_send_reset_link"))
 
 
 class ResetPasswordForm(FlaskForm):
-    password = PasswordField("New Password", validators=[DataRequired()])
-    confirm = PasswordField("Confirm Password", validators=[DataRequired(), EqualTo('password', message="Passwords must match.")])
-    submit = SubmitField("SET NEW PASSWORD")
+    password = PasswordField(lazy_translate("form_new_password"), validators=[DataRequired()])
+    confirm = PasswordField(lazy_translate("form_confirm_password"), validators=[DataRequired(), EqualTo('password', message=lazy_translate("form_passwords_must_match"))])
+    submit = SubmitField(lazy_translate("form_set_new_password"))
