@@ -7,16 +7,27 @@
 # PostgreSQL instance). Run it locally against the target database's External
 # Database URL. For the same major version as the source (Render: PostgreSQL 18).
 #
-# Usage:
-#   TARGET_DATABASE_URL="postgres://USER:PASS@HOST:PORT/DBNAME" \
-#     ./scripts/db_restore.sh [-y] backups/posts_YYYYMMDD_HHMMSS.dump
+# Setup & run (do the steps in order; do NOT type the URL on the command line):
 #
-#   -y   skip the confirmation prompt (for non-interactive use)
+#   1. Add the target database's External Database URL to your shell profile
+#      (e.g. ~/.zshrc). Keeping it in a file rather than typing it inline means
+#      it is never recorded in your shell history:
 #
-# The connection URL is read from the TARGET_DATABASE_URL environment variable
-# (not a command-line argument) so credentials never leak into shell history or
-# process listings. The URL itself is never printed; only the target host is
-# shown in the confirmation prompt.
+#          export TARGET_DATABASE_URL="postgres://USER:PASS@HOST:PORT/DBNAME"
+#
+#   2. Reload the profile so the variable is available in the current shell
+#      (or just open a new terminal):
+#
+#          source ~/.zshrc
+#
+#   3. Run the script, passing the dump file to restore:
+#
+#          ./scripts/db_restore.sh backups/posts_YYYYMMDD_HHMMSS.dump
+#
+#      Add the -y flag to skip the confirmation prompt (for non-interactive use):
+#
+#          ./scripts/db_restore.sh -y backups/posts_YYYYMMDD_HHMMSS.dump
+#
 
 set -euo pipefail
 
@@ -30,7 +41,9 @@ backup_file="${1:-}"
 
 if [[ -z "${TARGET_DATABASE_URL:-}" || -z "$backup_file" ]]; then
   echo "Error: TARGET_DATABASE_URL must be set and a backup file must be given." >&2
-  echo "Usage: TARGET_DATABASE_URL=postgres://USER:PASS@HOST:PORT/DBNAME $0 [-y] BACKUP_FILE" >&2
+  echo "Set TARGET_DATABASE_URL in your shell profile (e.g. ~/.zshrc), reload it," >&2
+  echo "then run: $0 [-y] BACKUP_FILE" >&2
+  echo "See the header of this script for the full procedure." >&2
   exit 1
 fi
 
