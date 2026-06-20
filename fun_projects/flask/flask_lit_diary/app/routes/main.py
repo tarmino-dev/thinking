@@ -8,23 +8,36 @@ import requests
 
 main_bp = Blueprint("main", __name__, template_folder="../templates/main")
 
+PER_PAGE = 10
+
+
+def _paginate(stmt):
+    """Paginate a notes select statement using the ?page query parameter.
+
+    Non-numeric page values fall back to 1 (via type=int); values below 1 are
+    clamped. error_out=False keeps out-of-range pages from raising a 404.
+    """
+    page = request.args.get("page", 1, type=int)
+    if page < 1:
+        page = 1
+    return db.paginate(stmt, page=page, per_page=PER_PAGE, error_out=False)
+
+
 @main_bp.route('/')
 def get_all_notes():
-    result = db.session.execute(db.select(Note).where(Note.is_public.is_(True)))
-    notes = result.scalars().all()
-    return render_template("index.html", all_notes=notes, is_my_notes=False)
+    pagination = _paginate(
+        db.select(Note).where(Note.is_public.is_(True)).order_by(Note.id.desc())
+    )
+    return render_template("index.html", all_notes=pagination.items, pagination=pagination, is_my_notes=False)
 
 
 @main_bp.route("/my-notes")
 @login_required
 def my_notes():
-    result = db.session.execute(
-        db.select(Note)
-        .where(Note.author_id == current_user.id)
-        .order_by(Note.date.desc())
+    pagination = _paginate(
+        db.select(Note).where(Note.author_id == current_user.id).order_by(Note.id.desc())
     )
-    notes = result.scalars().all()
-    return render_template("index.html", all_notes=notes, is_my_notes=True)
+    return render_template("index.html", all_notes=pagination.items, pagination=pagination, is_my_notes=True)
 
 
 @main_bp.route("/about")
