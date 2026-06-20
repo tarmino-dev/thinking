@@ -8,6 +8,7 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - Create, edit, and delete personal notes  
 - Public/private note visibility — keep notes to yourself or share them with all visitors  
 - "My Notes" personal feed — see all your notes, including private ones  
+- Paginated notes lists — 10 notes per page, newest first, with `?page=` navigation  
 - Optional `book` field for notes, which utilizes the Open Library API for book search  
 - User authentication (register, login, logout)  
 - Password reset via email link  
