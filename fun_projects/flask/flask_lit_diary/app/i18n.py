@@ -96,6 +96,7 @@ TRANSLATIONS = {
         "index_subtitle": "A quiet place for readers to record, reflect, and share.",
         "btn_create_note": "Create New Note",
         "btn_older_notes": "Older Notes →",
+        "btn_newer_notes": "← Newer Notes",
         # --- Note meta (index.html, note.html) ---
         "meta_book": "Book:",
         "meta_posted_by": "Posted by",
@@ -285,6 +286,7 @@ TRANSLATIONS = {
         "index_subtitle": "Тихе місце, де читачі занотовують, осмислюють і діляться.",
         "btn_create_note": "Створити нотатку",
         "btn_older_notes": "Старіші нотатки →",
+        "btn_newer_notes": "← Новіші нотатки",
         # --- Note meta (index.html, note.html) ---
         "meta_book": "Книга:",
         "meta_posted_by": "Автор:",
