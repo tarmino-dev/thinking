@@ -117,6 +117,18 @@ Start the application first (`python main.py`), then in a separate terminal:
 
 Selenium tests require Google Chrome and `chromedriver` to be installed. The base URL defaults to `http://localhost:5000` and can be overridden with the `BASE_URL` environment variable.
 
+## Seeding demo data
+
+To populate the database with sample notes — for example, to exercise the
+paginated notes list — use the seeding script. Titles are made unique per run,
+so it is safe to run repeatedly (each run appends more notes):
+
+`./venv/bin/python scripts/seed_notes.py --count 12`
+
+Notes are public by default (visible on the home page); pass `--no-public` to
+create private ones. The script writes to whatever `SQLALCHEMY_DATABASE_URI`
+points to, so prefer your local database when testing.
+
 ## Deployment
 
 Literature Diary is optimized for deployment on Render, Railway, or Heroku.
