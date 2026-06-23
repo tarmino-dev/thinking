@@ -139,6 +139,25 @@ To deploy:
 2. Push your latest code to the main branch
 3. Wait for automatic deployment to complete
 
+## Database backup & rollback
+
+The production database (PostgreSQL on Render) can be backed up and rolled back
+with the helper scripts in `scripts/`, run locally against the database's
+**External Database URL**. Each script reads its connection URL from an
+environment variable (set it in your shell profile, e.g. `~/.zshrc`, rather than
+inline — see each script's header) and never prints credentials. Dumps are
+written to the git-ignored `backups/` directory.
+
+- **Back up** — `scripts/db_backup.sh` reads `SOURCE_DATABASE_URL` and writes a
+  timestamped custom-format dump to `backups/`.
+- **Roll back in place** — `scripts/db_rollback.sh BACKUP_FILE` reads
+  `TARGET_DATABASE_URL` and reverts that same database to the given dump. This is
+  destructive — it overwrites current data and asks for confirmation; take a
+  fresh backup first if you might want to undo it.
+- **Restore into a new database** — `scripts/db_restore.sh BACKUP_FILE` restores
+  a dump into a freshly created, empty database (e.g. when provisioning a new
+  Render instance).
+
 ## API
 
 The project provides a REST API that exposes the core functionality of the application.
