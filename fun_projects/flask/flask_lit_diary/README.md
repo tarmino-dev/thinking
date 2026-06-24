@@ -18,6 +18,7 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - Contact form with SendGrid email integration  
 - Self-hosted fonts and icons — no CDN calls to Google Fonts or Font Awesome  
 - Clean and cozy interface with warm, book-like tones  
+- Multilingual UI (English and Ukrainian) with an in-page language switcher, preference stored per session  
 - Structured templates powered by Flask Blueprints  
 - SQLite or PostgreSQL database support  
 - Gravatar integration for user avatars  
