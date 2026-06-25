@@ -1,12 +1,18 @@
-from flask import Blueprint, render_template, redirect, url_for, flash, abort
+from flask import Blueprint, render_template, redirect, url_for, flash, abort, request, jsonify, current_app
 from app.extensions import db
 from app.models.note import Note
 from app.models.comment import Comment
 from app.forms.note_forms import CreateNoteForm, CommentForm
+from app import ai
 from flask_login import current_user, login_required
 from datetime import date
+import anthropic
 
 notes_bp = Blueprint("notes", __name__, template_folder="../templates/notes")
+
+# Bounds for the AI discussion endpoint, to keep token cost predictable.
+DISCUSS_MAX_MESSAGES = 20
+DISCUSS_MAX_CHARS = 4000
 
 
 def _can_edit_note(note: Note) -> bool:
@@ -94,3 +100,50 @@ def delete_note(note_id):
     db.session.delete(note_to_delete)
     db.session.commit()
     return redirect(url_for("main.get_all_notes"))
+
+
+def _own_note_or_403(note_id):
+    """Fetch a note and ensure the current user is its author (own notes only)."""
+    note = db.get_or_404(Note, note_id)
+    if note.author_id != current_user.id:
+        abort(403)
+    return note
+
+
+@notes_bp.route("/note/<int:note_id>/discuss")
+@login_required
+def discuss_page(note_id):
+    note = _own_note_or_403(note_id)
+    return render_template("discuss.html", note=note)
+
+
+@notes_bp.route("/note/<int:note_id>/discuss", methods=["POST"])
+@login_required
+def discuss_message(note_id):
+    note = _own_note_or_403(note_id)
+
+    data = request.get_json(silent=True) or {}
+    raw_messages = data.get("messages")
+    if not isinstance(raw_messages, list):
+        return jsonify({"error": "invalid request"}), 400
+
+    # Keep only the most recent, well-formed messages and cap their length.
+    history = []
+    for message in raw_messages[-DISCUSS_MAX_MESSAGES:]:
+        if not isinstance(message, dict):
+            continue
+        role = message.get("role")
+        content = message.get("content")
+        if role in ("user", "assistant") and isinstance(content, str) and content.strip():
+            history.append({"role": role, "content": content[:DISCUSS_MAX_CHARS]})
+
+    if not history or history[-1]["role"] != "user":
+        return jsonify({"error": "invalid request"}), 400
+
+    try:
+        reply = ai.discuss_note(note, history)
+    except anthropic.AnthropicError:
+        current_app.logger.exception("AI discussion failed")
+        return jsonify({"error": "AI service unavailable"}), 502
+
+    return jsonify({"reply": reply})
