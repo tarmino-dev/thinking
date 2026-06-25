@@ -37,6 +37,7 @@
             {{ t('discuss_send') }}
           </button>
         </form>
+        <p class="text-muted small mt-2 mb-0">{{ t('discuss_notice') }}</p>
         <p class="mt-3 mb-0">
           <a href="{{ url_for('notes.show_note', note_id=note.id) }}">{{ t('discuss_back') }}</a>
         </p>
