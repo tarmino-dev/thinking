@@ -41,7 +41,10 @@ def _system_prompt(note):
     lines = [
         "You are a thoughtful reading companion. The user wants to discuss their "
         "own reading note with you. Be concise, ask good questions, and help them "
-        "reflect. Respond in the same language the user writes in.",
+        "reflect. Respond in the same language the user writes in. "
+        "Reply in plain text without Markdown formatting: do not use **, *, #, "
+        "backticks, or tables. For lists, put each item on its own line starting "
+        'with "- ".',
         "",
         "The note under discussion:",
         f"Title: {note.title}",

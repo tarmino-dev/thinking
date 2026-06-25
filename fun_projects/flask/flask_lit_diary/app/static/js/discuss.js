@@ -24,6 +24,8 @@
       bubble.className =
         "d-inline-block px-3 py-2 rounded " +
         (role === "user" ? "bg-primary text-white" : "bg-light border");
+      // Preserve newlines/indentation from the reply (plain text, no Markdown).
+      bubble.style.whiteSpace = "pre-wrap";
       bubble.textContent = text;
       wrap.appendChild(bubble);
       chat.appendChild(wrap);
