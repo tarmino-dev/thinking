@@ -9,6 +9,7 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - Public/private note visibility — keep notes to yourself or share them with all visitors  
 - "My Notes" personal feed — see all your notes, including private ones  
 - Paginated notes lists — 10 notes per page, newest first, with `?page=` navigation  
+- Discuss any of your own notes with an AI assistant (Anthropic Claude)  
 - Optional `book` field for notes, which utilizes the Open Library API for book search  
 - User authentication (register, login, logout)  
 - Password reset via email link  
@@ -34,6 +35,7 @@ The project follows a modular Flask architecture:
   - `routes/` — organized Blueprints (`main`, `auth`, `notes`)  
   - `models/` — SQLAlchemy models  
   - `forms/` — Flask-WTF form definitions  
+  - `ai.py` — Anthropic Claude integration for discussing a note  
   - `utils/` — utility functions and decorators (e.g., `admin_only`)  
   - `templates/` — feature-based HTML templates  
   - `static/` — CSS, JS, and image assets  
@@ -78,9 +80,12 @@ Add the following lines to your shell configuration file:
 `export FLASK_KEY=your_secret_key`  
 `export SQLALCHEMY_DATABASE_URI=sqlite:///literature_diary.db`  
 `export GMAIL_EMAIL=your_verified_sender@example.com`  
-`export SENDGRID_API_KEY=your_sendgrid_api_key`
+`export SENDGRID_API_KEY=your_sendgrid_api_key`  
+`export ANTHROPIC_API_KEY=your_anthropic_api_key`
 
 > **Note:** `GMAIL_EMAIL` is the SendGrid verified sender address used for outgoing email (contact form replies and password reset links). It does not have to be a Gmail address — any address verified with SendGrid works.
+
+> **Note:** `ANTHROPIC_API_KEY` powers the "Discuss with AI" feature (Anthropic Claude API). Get a key from the [Anthropic Console](https://console.anthropic.com). It is optional — without it the rest of the app works, and only the discussion feature returns an error.
 
 For production deployments served over HTTPS, also set:
 
@@ -339,6 +344,7 @@ Each endpoint is tested for both successful and error scenarios (authentication,
 - Bootstrap 5
 - CKEditor
 - SendGrid API
+- Anthropic Claude API (`anthropic` SDK)
 
 ## Author
 
