@@ -32,6 +32,9 @@
         {{ note.body|safe }}
         {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.id == 1) %}
         <div class="d-flex justify-content-end gap-2 mb-4">
+          {% if current_user.id == note.author_id %}
+          <a class="btn btn-secondary" href="{{ url_for('notes.discuss_page', note_id=note.id) }}">{{ t('btn_discuss_ai') }}</a>
+          {% endif %}
           <a class="btn btn-primary" href="{{ url_for('notes.edit_note', note_id=note.id) }}">{{ t('btn_edit_note') }}</a>
           <a class="btn btn-danger" href="{{ url_for('notes.delete_note', note_id=note.id) }}">{{ t('btn_delete_note') }}</a>
         </div>

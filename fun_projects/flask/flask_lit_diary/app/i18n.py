@@ -104,6 +104,13 @@ TRANSLATIONS = {
         # --- Note detail (note.html) ---
         "btn_edit_note": "Edit Note",
         "btn_delete_note": "Delete Note",
+        "btn_discuss_ai": "Discuss with AI",
+        "discuss_title": "Discuss with AI",
+        "discuss_placeholder": "Type your message…",
+        "discuss_send": "Send",
+        "discuss_thinking": "Thinking…",
+        "discuss_error": "Something went wrong. Please try again.",
+        "discuss_back": "Back to note",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "New Note",
         "note_edit_title": "Edit Note",
@@ -294,6 +301,13 @@ TRANSLATIONS = {
         # --- Note detail (note.html) ---
         "btn_edit_note": "Редагувати нотатку",
         "btn_delete_note": "Видалити нотатку",
+        "btn_discuss_ai": "Обговорити з AI",
+        "discuss_title": "Обговорення з AI",
+        "discuss_placeholder": "Введіть повідомлення…",
+        "discuss_send": "Надіслати",
+        "discuss_thinking": "Думаю…",
+        "discuss_error": "Щось пішло не так. Спробуйте ще раз.",
+        "discuss_back": "Назад до нотатки",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "Нова нотатка",
         "note_edit_title": "Редагувати нотатку",
