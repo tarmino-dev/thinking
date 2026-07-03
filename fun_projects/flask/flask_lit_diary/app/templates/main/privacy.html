@@ -19,6 +19,7 @@
     </ul>
     <p>{{ t('privacy_collect_no_contact') }} <strong>{{ t('privacy_collect_no_contact_strong') }}</strong> {{ t('privacy_collect_no_contact_2') }}</p>
     <p>{{ t('privacy_ai_discussions') }}</p>
+    <p>{{ t('privacy_ai_images') }}</p>
 
     <h2 class="h4 mt-4">{{ t('privacy_h2') }}</h2>
     <p>{{ t('privacy_cookies_p1') }}</p>
@@ -69,6 +70,11 @@
                 <td>Anthropic (Claude API)</td>
                 <td>{{ t('privacy_anthropic_when') }}</td>
                 <td>{{ t('privacy_anthropic_data') }}</td>
+            </tr>
+            <tr>
+                <td>Cloudflare (Workers AI + R2)</td>
+                <td>{{ t('privacy_cloudflare_when') }}</td>
+                <td>{{ t('privacy_cloudflare_data') }}</td>
             </tr>
         </tbody>
     </table>
