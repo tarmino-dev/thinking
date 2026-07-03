@@ -3,7 +3,8 @@ from app.extensions import db
 from app.models.note import Note
 from app.models.comment import Comment
 from app.forms.note_forms import CreateNoteForm, CommentForm
-from app import ai
+from app import ai, images
+from app.i18n import translate
 from flask_login import current_user, login_required
 from datetime import date
 import anthropic
@@ -147,3 +148,18 @@ def discuss_message(note_id):
         return jsonify({"error": "AI service unavailable"}), 502
 
     return jsonify({"reply": reply})
+
+
+@notes_bp.route("/note/<int:note_id>/generate-image", methods=["POST"])
+@login_required
+def generate_image(note_id):
+    note = _own_note_or_403(note_id)
+    try:
+        note.img_url = images.generate_note_image(note)
+        db.session.commit()
+        flash(translate("flash_image_generated"), "success")
+    except Exception:
+        db.session.rollback()
+        current_app.logger.exception("Image generation failed")
+        flash(translate("flash_image_failed"), "error")
+    return redirect(url_for("notes.show_note", note_id=note.id))
