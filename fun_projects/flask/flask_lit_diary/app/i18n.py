@@ -112,6 +112,8 @@ TRANSLATIONS = {
         "discuss_error": "Something went wrong. Please try again.",
         "discuss_back": "Back to note",
         "discuss_notice": "This conversation is temporary — it isn't saved and disappears when you leave the page.",
+        "btn_generate_image": "Generate new image with AI",
+        "img_generating": "Generating…",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "New Note",
         "note_edit_title": "Edit Note",
@@ -271,6 +273,8 @@ TRANSLATIONS = {
         "flash_password_updated": "Your password has been updated. Please log in.",
         "flash_message_sent": "Your message has been sent successfully!",
         "flash_message_failed": "Something went wrong. Please try again later.",
+        "flash_image_generated": "A new image has been generated for your note.",
+        "flash_image_failed": "Image generation failed. Please try again later.",
     },
     "uk": {
         # --- Brand / common ---
@@ -313,6 +317,8 @@ TRANSLATIONS = {
         "discuss_error": "Щось пішло не так. Спробуйте ще раз.",
         "discuss_back": "Назад до нотатки",
         "discuss_notice": "Ця розмова тимчасова — вона не зберігається і зникає, коли ви залишаєте сторінку.",
+        "btn_generate_image": "Згенерувати зображення з AI",
+        "img_generating": "Генеруємо…",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "Нова нотатка",
         "note_edit_title": "Редагувати нотатку",
@@ -472,5 +478,7 @@ TRANSLATIONS = {
         "flash_password_updated": "Ваш пароль оновлено. Будь ласка, увійдіть.",
         "flash_message_sent": "Ваше повідомлення успішно надіслано!",
         "flash_message_failed": "Щось пішло не так. Спробуйте пізніше.",
+        "flash_image_generated": "Для вашої нотатки згенеровано нове зображення.",
+        "flash_image_failed": "Не вдалося згенерувати зображення. Спробуйте пізніше.",
     },
 }

@@ -33,6 +33,9 @@
         {% if current_user.is_authenticated and (current_user.id == note.author_id or current_user.id == 1) %}
         <div class="d-flex justify-content-end gap-2 mb-4">
           {% if current_user.id == note.author_id %}
+          <form method="POST" action="{{ url_for('notes.generate_image', note_id=note.id) }}" class="d-inline" id="generate-image-form">
+            <button type="submit" class="btn btn-outline-secondary" id="generate-image-btn">{{ t('btn_generate_image') }}</button>
+          </form>
           <a class="btn btn-secondary" href="{{ url_for('notes.discuss_page', note_id=note.id) }}">{{ t('btn_discuss_ai') }}</a>
           {% endif %}
           <a class="btn btn-primary" href="{{ url_for('notes.edit_note', note_id=note.id) }}">{{ t('btn_edit_note') }}</a>
@@ -65,5 +68,20 @@
     </div>
   </div>
 </article>
+
+<script>
+  // Show a "Generating…" state while the (synchronous) image generation runs.
+  (function () {
+    var form = document.getElementById("generate-image-form");
+    if (!form) return;
+    form.addEventListener("submit", function () {
+      var btn = document.getElementById("generate-image-btn");
+      if (btn) {
+        btn.disabled = true;
+        btn.textContent = {{ t('img_generating')|tojson }};
+      }
+    });
+  })();
+</script>
 
 {% include "footer.html" %}
