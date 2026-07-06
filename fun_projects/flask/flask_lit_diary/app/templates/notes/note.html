@@ -34,9 +34,9 @@
         <div class="d-flex justify-content-end gap-2 mb-4">
           {% if current_user.id == note.author_id %}
           <form method="POST" action="{{ url_for('notes.generate_image', note_id=note.id) }}" class="d-inline" id="generate-image-form">
-            <button type="submit" class="btn btn-outline-secondary" id="generate-image-btn">{{ t('btn_generate_image') }}</button>
+            <button type="submit" class="btn text-white" style="background-color: #6f42c1; border-color: #6f42c1;" id="generate-image-btn">{{ t('btn_generate_image') }}</button>
           </form>
-          <a class="btn btn-secondary" href="{{ url_for('notes.discuss_page', note_id=note.id) }}">{{ t('btn_discuss_ai') }}</a>
+          <a class="btn text-white" style="background-color: #6f42c1; border-color: #6f42c1;" href="{{ url_for('notes.discuss_page', note_id=note.id) }}">{{ t('btn_discuss_ai') }}</a>
           {% endif %}
           <a class="btn btn-primary" href="{{ url_for('notes.edit_note', note_id=note.id) }}">{{ t('btn_edit_note') }}</a>
           <a class="btn btn-danger" href="{{ url_for('notes.delete_note', note_id=note.id) }}">{{ t('btn_delete_note') }}</a>
