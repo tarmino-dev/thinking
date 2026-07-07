@@ -10,6 +10,7 @@ With its warm aesthetic and intuitive interface, Literature Diary blends the cha
 - "My Notes" personal feed — see all your notes, including private ones  
 - Paginated notes lists — 10 notes per page, newest first, with `?page=` navigation  
 - Discuss any of your own notes with an AI assistant (Anthropic Claude)  
+- Generate a note's header image with AI (Cloudflare Workers AI), stored on Cloudflare R2  
 - Optional `book` field for notes, which utilizes the Open Library API for book search  
 - User authentication (register, login, logout)  
 - Password reset via email link  
@@ -35,7 +36,8 @@ The project follows a modular Flask architecture:
   - `routes/` — organized Blueprints (`main`, `auth`, `notes`)  
   - `models/` — SQLAlchemy models  
   - `forms/` — Flask-WTF form definitions  
-  - `ai.py` — Anthropic Claude integration for discussing a note  
+  - `ai.py` — Anthropic Claude integration (note discussion and image-prompt generation)  
+  - `images.py` — AI image generation (Cloudflare Workers AI) and R2 storage  
   - `utils/` — utility functions and decorators (e.g., `admin_only`)  
   - `templates/` — feature-based HTML templates  
   - `static/` — CSS, JS, and image assets  
@@ -81,11 +83,19 @@ Add the following lines to your shell configuration file:
 `export SQLALCHEMY_DATABASE_URI=sqlite:///literature_diary.db`  
 `export GMAIL_EMAIL=your_verified_sender@example.com`  
 `export SENDGRID_API_KEY=your_sendgrid_api_key`  
-`export ANTHROPIC_API_KEY=your_anthropic_api_key`
+`export ANTHROPIC_API_KEY=your_anthropic_api_key`  
+`export CLOUDFLARE_ACCOUNT_ID=your_cloudflare_account_id`  
+`export CLOUDFLARE_AI_API_TOKEN=your_workers_ai_token`  
+`export R2_ACCESS_KEY_ID=your_r2_access_key_id`  
+`export R2_SECRET_ACCESS_KEY=your_r2_secret_access_key`  
+`export R2_BUCKET=your_r2_bucket_name`  
+`export R2_PUBLIC_BASE_URL=https://pub-xxxx.r2.dev`
 
 > **Note:** `GMAIL_EMAIL` is the SendGrid verified sender address used for outgoing email (contact form replies and password reset links). It does not have to be a Gmail address — any address verified with SendGrid works.
 
 > **Note:** `ANTHROPIC_API_KEY` powers the "Discuss with AI" feature (Anthropic Claude API). Get a key from the [Anthropic Console](https://console.anthropic.com). It is optional — without it the rest of the app works, and only the discussion feature returns an error.
+
+> **Note:** The `CLOUDFLARE_*` and `R2_*` variables power the "Generate new image with AI" feature — image generation via [Cloudflare Workers AI](https://developers.cloudflare.com/workers-ai/) and storage in a [Cloudflare R2](https://developers.cloudflare.com/r2/) bucket served from `R2_PUBLIC_BASE_URL`. They are optional; without them the rest of the app works, and only image generation returns an error.
 
 For production deployments served over HTTPS, also set:
 
@@ -345,6 +355,8 @@ Each endpoint is tested for both successful and error scenarios (authentication,
 - CKEditor
 - SendGrid API
 - Anthropic Claude API (`anthropic` SDK)
+- Cloudflare Workers AI (image generation)
+- Cloudflare R2 object storage (`boto3`)
 
 ## Author
 

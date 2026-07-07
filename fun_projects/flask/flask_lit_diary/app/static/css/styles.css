@@ -10913,3 +10913,9 @@ header.masthead .post-heading .meta a {
   color: var(--bs-secondary);
   font-size: 0.875rem;
 }
+
+/* Hide the end-of-life "not secure" warning banner shown by CKEditor 4.
+   The editor is unmaintained; migrating to a supported editor is a future task. */
+.cke_notifications_area .cke_notification_warning {
+  display: none !important;
+}

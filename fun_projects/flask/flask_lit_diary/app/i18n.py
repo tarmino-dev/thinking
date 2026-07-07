@@ -112,6 +112,8 @@ TRANSLATIONS = {
         "discuss_error": "Something went wrong. Please try again.",
         "discuss_back": "Back to note",
         "discuss_notice": "This conversation is temporary — it isn't saved and disappears when you leave the page.",
+        "btn_generate_image": "Generate new image with AI",
+        "img_generating": "Generating…",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "New Note",
         "note_edit_title": "Edit Note",
@@ -194,6 +196,9 @@ TRANSLATIONS = {
         "privacy_anthropic_when": "When you use \"Discuss with AI\" on one of your notes",
         "privacy_anthropic_data": "The note's title, subtitle, book, and content, plus the messages you send in the discussion",
         "privacy_ai_discussions": "AI discussions of your notes are processed by Anthropic to generate replies and are not stored in our database. The conversation is temporary and is lost when you leave the page.",
+        "privacy_ai_images": "Images generated for your notes are created by Cloudflare Workers AI and stored in our Cloudflare R2 bucket; the note keeps a public link to the stored image.",
+        "privacy_cloudflare_when": "When you use \"Generate new image with AI\" on one of your notes",
+        "privacy_cloudflare_data": "The note's title, subtitle, book, and content (used to build the image prompt); the generated image is stored in our Cloudflare R2 bucket",
         "privacy_h4": "4. Your Rights",
         "privacy_rights_intro": "Under the General Data Protection Regulation (GDPR) you have the following rights over your personal data:",
         "privacy_rights_access_label": "Right of access and portability (Art. 15, 20)",
@@ -271,6 +276,8 @@ TRANSLATIONS = {
         "flash_password_updated": "Your password has been updated. Please log in.",
         "flash_message_sent": "Your message has been sent successfully!",
         "flash_message_failed": "Something went wrong. Please try again later.",
+        "flash_image_generated": "A new image has been generated for your note.",
+        "flash_image_failed": "Image generation failed. Please try again later.",
     },
     "uk": {
         # --- Brand / common ---
@@ -313,6 +320,8 @@ TRANSLATIONS = {
         "discuss_error": "Щось пішло не так. Спробуйте ще раз.",
         "discuss_back": "Назад до нотатки",
         "discuss_notice": "Ця розмова тимчасова — вона не зберігається і зникає, коли ви залишаєте сторінку.",
+        "btn_generate_image": "Згенерувати зображення з AI",
+        "img_generating": "Генеруємо…",
         # --- New/edit note (make-note.html) ---
         "note_new_title": "Нова нотатка",
         "note_edit_title": "Редагувати нотатку",
@@ -395,6 +404,9 @@ TRANSLATIONS = {
         "privacy_anthropic_when": "Коли ви використовуєте «Обговорити з AI» для своєї нотатки",
         "privacy_anthropic_data": "Заголовок, підзаголовок, книга та зміст нотатки, а також повідомлення, які ви надсилаєте в обговоренні",
         "privacy_ai_discussions": "Обговорення ваших нотаток з AI обробляються Anthropic для генерації відповідей і не зберігаються в нашій базі даних. Розмова тимчасова й зникає, коли ви залишаєте сторінку.",
+        "privacy_ai_images": "Зображення для ваших нотаток створюються Cloudflare Workers AI і зберігаються в нашому бакеті Cloudflare R2; нотатка зберігає публічне посилання на збережене зображення.",
+        "privacy_cloudflare_when": "Коли ви використовуєте «Згенерувати зображення з AI» для своєї нотатки",
+        "privacy_cloudflare_data": "Заголовок, підзаголовок, книга та зміст нотатки (для складання промпту); згенероване зображення зберігається в нашому бакеті Cloudflare R2",
         "privacy_h4": "4. Ваші права",
         "privacy_rights_intro": "Відповідно до Загального регламенту про захист даних (GDPR) ви маєте такі права щодо ваших персональних даних:",
         "privacy_rights_access_label": "Право на доступ і перенесення (ст. 15, 20)",
@@ -472,5 +484,7 @@ TRANSLATIONS = {
         "flash_password_updated": "Ваш пароль оновлено. Будь ласка, увійдіть.",
         "flash_message_sent": "Ваше повідомлення успішно надіслано!",
         "flash_message_failed": "Щось пішло не так. Спробуйте пізніше.",
+        "flash_image_generated": "Для вашої нотатки згенеровано нове зображення.",
+        "flash_image_failed": "Не вдалося згенерувати зображення. Спробуйте пізніше.",
     },
 }

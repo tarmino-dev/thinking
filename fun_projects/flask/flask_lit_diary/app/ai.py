@@ -69,3 +69,34 @@ def discuss_note(note, history):
         messages=history,
     )
     return next((block.text for block in response.content if block.type == "text"), "")
+
+
+_IMAGE_PROMPT_SYSTEM = (
+    "You write prompts for an image-generation model. From the user's reading "
+    "note, produce a single vivid, atmospheric visual prompt for a header banner "
+    "image: describe the scene, mood, colour palette, and art style. Do not "
+    "include any text, letters, words, titles, logos, or watermarks in the image. "
+    "Reply with the prompt only — no preamble, no quotes, under 60 words."
+)
+
+
+def image_prompt_for_note(note):
+    """Ask Claude for a vivid image-generation prompt based on the note.
+
+    Returns a short plain-text prompt. Raises anthropic.AnthropicError on API
+    failure (the caller maps it to a user-facing error).
+    """
+    body = _strip_html(note.body)[:MAX_BODY_CHARS]
+    lines = [f"Title: {note.title}", f"Subtitle: {note.subtitle}"]
+    if note.book:
+        lines.append(f"Book: {note.book}")
+    lines.append(f"Content: {body}")
+
+    response = _get_client().messages.create(
+        model=CHAT_MODEL,
+        max_tokens=200,
+        system=_IMAGE_PROMPT_SYSTEM,
+        messages=[{"role": "user", "content": "\n".join(lines)}],
+    )
+    text = next((block.text for block in response.content if block.type == "text"), "")
+    return text.strip()
