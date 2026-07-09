@@ -60,9 +60,8 @@ def save_s3(file):
     )
 
     file_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_REGION}.amazonaws.com/{unique_name}"
-    thumb_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_REGION}.amazonaws.com/{thumb_name}"
 
-    return file_url, thumb_url
+    return file_url
 
 
 def save_local(file):

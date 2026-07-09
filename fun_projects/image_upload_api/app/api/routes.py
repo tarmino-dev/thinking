@@ -15,7 +15,7 @@ async def upload_image(file: UploadFile = File(...),
                        user=Depends(get_current_user),
                        db=Depends(get_db)):
 
-    file_url, thumb_url = save_file(file)
+    file_url = save_file(file)
 
     image = Image(filename=file.filename, path=file_url, user_id=user.id)
     db.add(image)
