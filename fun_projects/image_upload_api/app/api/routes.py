@@ -6,7 +6,9 @@ from app.core.security import hash_password, verify_password, create_access_toke
 from fastapi import Depends
 from app.api.dependencies import get_current_user, get_db
 from app.schemas.user import UserCreate, UserLogin
+from app.schemas.image import ImageOut
 from fastapi import HTTPException
+from typing import List
 
 router = APIRouter()
 
@@ -24,9 +26,9 @@ async def upload_image(file: UploadFile = File(...),
 
     return {"id": image.id, "filename": image.filename}
 
-@router.get("/images")
-def get_images(db=Depends(get_db)):
-    return db.query(Image).all()
+@router.get("/images", response_model=List[ImageOut])
+def get_images(user=Depends(get_current_user), db=Depends(get_db)):
+    return db.query(Image).filter(Image.user_id == user.id).all()
 
 @router.get("/images/{image_id}")
 def get_image(image_id: int, db=Depends(get_db)):
