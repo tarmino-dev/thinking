@@ -30,9 +30,14 @@ async def upload_image(file: UploadFile = File(...),
 def get_images(user=Depends(get_current_user), db=Depends(get_db)):
     return db.query(Image).filter(Image.user_id == user.id).all()
 
-@router.get("/images/{image_id}")
-def get_image(image_id: int, db=Depends(get_db)):
-    return {"id": image_id}
+@router.get("/images/{image_id}", response_model=ImageOut)
+def get_image(image_id: int, user=Depends(get_current_user), db=Depends(get_db)):
+    image = db.query(Image).filter(
+        Image.id == image_id, Image.user_id == user.id
+    ).first()
+    if not image:
+        raise HTTPException(status_code=404, detail="Image not found")
+    return image
 
 @router.post("/register")
 def register(user: UserCreate, db=Depends(get_db)):
