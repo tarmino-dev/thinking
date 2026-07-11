@@ -1,5 +1,8 @@
+import base64
 from fastapi import APIRouter, UploadFile, File
-from app.services.storage import save_file
+from celery.result import AsyncResult
+from app.celery_app import celery_app
+from app.tasks import process_image
 from app.db.session import SessionLocal
 from app.db.models import Image, User
 from app.core.security import hash_password, verify_password, create_access_token
@@ -14,18 +17,23 @@ router = APIRouter()
 
 @router.post("/upload")
 async def upload_image(file: UploadFile = File(...),
-                       user=Depends(get_current_user),
-                       db=Depends(get_db)):
+                       user=Depends(get_current_user)):
 
     data = await file.read()
-    file_url = save_file(data, file.filename, file.content_type)
+    task = process_image.delay(
+        base64.b64encode(data).decode(), file.filename, file.content_type, user.id
+    )
 
-    image = Image(filename=file.filename, path=file_url, user_id=user.id)
-    db.add(image)
-    db.commit()
-    db.refresh(image)
+    return {"task_id": task.id}
 
-    return {"id": image.id, "filename": image.filename}
+@router.get("/tasks/{task_id}")
+def get_task(task_id: str, user=Depends(get_current_user)):
+    res = AsyncResult(task_id, app=celery_app)
+    return {
+        "task_id": task_id,
+        "status": res.status,
+        "result": res.result if res.ready() else None,
+    }
 
 @router.get("/images", response_model=List[ImageOut])
 def get_images(user=Depends(get_current_user), db=Depends(get_db)):
