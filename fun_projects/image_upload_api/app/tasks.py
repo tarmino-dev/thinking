@@ -7,11 +7,6 @@ from app.db.models import Image
 
 
 @celery_app.task
-def add(x, y):
-    return x + y
-
-
-@celery_app.task
 def process_image(file_b64, filename, content_type, user_id):
     data = base64.b64decode(file_b64)
     file_url = save_file(data, filename, content_type)
