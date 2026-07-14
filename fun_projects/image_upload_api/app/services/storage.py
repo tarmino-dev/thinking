@@ -5,14 +5,14 @@ from app.core.config import settings
 from PIL import Image as PILImage
 import io
 
-def save_file(file):
+def save_file(file_bytes, filename, content_type):
     if settings.STORAGE_TYPE == "s3":
-        return save_s3(file)
+        return save_s3(file_bytes, filename, content_type)
     else:
-        return save_local(file)
+        return save_local(file_bytes, filename)
 
 
-def save_s3(file):
+def save_s3(file_bytes, filename, content_type):
     s3 = boto3.client(
         "s3",
         aws_access_key_id=settings.AWS_ACCESS_KEY_ID,
@@ -20,7 +20,6 @@ def save_s3(file):
         region_name=settings.AWS_REGION,
     )
 
-    file_bytes = file.file.read()
     image = PILImage.open(io.BytesIO(file_bytes))
 
     # Resize (max 800px)
@@ -31,7 +30,7 @@ def save_s3(file):
     output.seek(0)
 
     # unique filename
-    file_extension = file.filename.split(".")[-1]
+    file_extension = filename.split(".")[-1]
     unique_name = f"{uuid.uuid4()}.{file_extension}"
 
     # upload original (resize)
@@ -39,7 +38,7 @@ def save_s3(file):
         output,
         settings.AWS_S3_BUCKET,
         unique_name,
-        ExtraArgs={"ContentType": file.content_type}
+        ExtraArgs={"ContentType": content_type}
     )
 
     # create thumbnail
@@ -56,21 +55,20 @@ def save_s3(file):
         thumb_bytes,
         settings.AWS_S3_BUCKET,
         thumb_name,
-        ExtraArgs={"ContentType": file.content_type}
+        ExtraArgs={"ContentType": content_type}
     )
 
     file_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_REGION}.amazonaws.com/{unique_name}"
-    thumb_url = f"https://{settings.AWS_S3_BUCKET}.s3.{settings.AWS_REGION}.amazonaws.com/{thumb_name}"
 
-    return file_url, thumb_url
+    return file_url
 
 
-def save_local(file):
+def save_local(file_bytes, filename):
     os.makedirs(settings.UPLOAD_DIR, exist_ok=True)
 
-    file_path = os.path.join(settings.UPLOAD_DIR, file.filename)
+    file_path = os.path.join(settings.UPLOAD_DIR, filename)
 
     with open(file_path, "wb") as buffer:
-        buffer.write(file.file.read())
+        buffer.write(file_bytes)
 
     return file_path
