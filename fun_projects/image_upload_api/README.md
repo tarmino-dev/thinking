@@ -6,7 +6,7 @@ A cloud-based backend service for uploading, processing, and storing images usin
 
 This project is a backend service that allows users to upload images, process them, and store them in a cloud environment.
 
-The application is built with `FastAPI` and follows a modular architecture, separating API logic, business logic, and infrastructure components. Uploaded images are processed (resized and converted into thumbnails) and stored in `AWS S3`, while metadata is persisted in a `PostgreSQL` database hosted on `AWS RDS`.
+The application is built with `FastAPI` and follows a modular architecture, separating API logic, business logic, and infrastructure components. Image processing (resizing and thumbnail generation) runs **asynchronously** in a `Celery` worker with `Redis` as the message broker and result backend: `POST /upload` enqueues a background task and returns immediately with a `task_id`, and the client polls `GET /tasks/{task_id}` for the result. Processed images are stored in `AWS S3`, while metadata is persisted in a `PostgreSQL` database hosted on `AWS RDS`.
 
 The service includes user authentication using `JWT` and demonstrates a complete cloud-based workflow, including containerization with `Docker` and automated deployment using `GitHub Actions`.
 
@@ -17,7 +17,11 @@ This project is designed to showcase practical experience with backend developme
 * User registration and authentication using `JWT`
 * Secure password storage with hashing (`bcrypt`)
 * Image upload via REST API endpoint (`/upload`)
-* Image processing:
+* Asynchronous image processing with `Celery` and `Redis`:
+
+  * Upload enqueues a background task and returns a `task_id`
+  * Task status/result retrieved via `GET /tasks/{task_id}`
+* Image processing (in the worker):
 
   * Automatic resizing (max dimensions limit)
   * Thumbnail generation
@@ -30,7 +34,8 @@ This project is designed to showcase practical experience with backend developme
   * Metadata stored in `PostgreSQL` (`AWS RDS`)
 * Protected endpoints:
 
-  * Upload requires valid authentication token
+  * Upload requires a valid authentication token
+  * Image listing/retrieval is scoped to the authenticated user (users see only their own images)
 * Containerized application using `Docker` and `docker-compose`
 * Environment-based configuration using `.env`
 * Automated deployment with `GitHub Actions` (CI/CD pipeline)
@@ -69,6 +74,11 @@ This project is designed to showcase practical experience with backend developme
 
 * `Pillow`
 
+### Asynchronous Processing
+
+* `Celery` (task queue)
+* `Redis` (message broker and result backend)
+
 ## Architecture
 
 The application follows a modular and layered architecture, separating concerns between API, business logic, data access, and infrastructure configuration.
@@ -80,19 +90,21 @@ The application follows a modular and layered architecture, separating concerns 
 * `app/db` — database layer (models, session, CRUD operations)
 * `app/core` — configuration and security (settings, JWT, hashing)
 * `app/schemas` — data validation and serialization (Pydantic models)
+* `app/celery_app.py` — Celery application (broker and result backend configuration)
+* `app/tasks.py` — background tasks (asynchronous image processing)
 
 ### Data Flow
 
-1. A client sends a request to the API (e.g., `POST /upload`)
-2. The request is validated using `Pydantic` schemas
-3. Authentication is verified via `JWT`
-4. The file is passed to the service layer
-5. The service:
+1. A client sends `POST /upload` with an image (and a valid `JWT`)
+2. Authentication is verified via `JWT`
+3. The API reads the file bytes and enqueues a `process_image` task on `Redis`, then returns a `task_id`
+4. The `Celery` worker picks up the task and:
 
    * processes the image (`resize`, `thumbnail`)
    * uploads it to `AWS S3`
-6. The API stores metadata (file URL, filename, user reference) in `PostgreSQL` (`AWS RDS`)
-7. The response is returned to the client
+   * stores metadata (file URL, filename, user reference) in `PostgreSQL` (`AWS RDS`)
+   * the task result is saved to the `Redis` result backend
+5. The client polls `GET /tasks/{task_id}` until the task reports `SUCCESS` with the created image record
 
 ## Architecture Diagram
 
@@ -103,18 +115,27 @@ The application follows a modular and layered architecture, separating concerns 
                 └───────┬───────┘
                         │ HTTP Requests
                         ▼
-              ┌───────────────────┐
-              │    FastAPI App    │
-              │(Docker on AWS EC2)│
-              └─────────┬─────────┘
-                        │
-        ┌───────────────┴───────────────┐
-        │                               │
-        ▼                               ▼
-┌───────────────┐               ┌───────────────┐
-│   AWS S3      │               │   AWS RDS     │
-│ (File Storage)│               │ (PostgreSQL)  │
-└───────────────┘               └───────────────┘
+              ┌───────────────────┐   enqueue task   ┌───────────────┐
+              │    FastAPI App    │ ───────────────► │     Redis     │
+              │(Docker on AWS EC2)│ ◄─────────────── │ (broker +     │
+              └─────────┬─────────┘   task status    │  result store)│
+                        │                            └───────┬───────┘
+                        │                                    │ consume task
+                        │                                    ▼
+                        │                          ┌───────────────────┐
+                        │                          │   Celery Worker   │
+                        │                          │(Docker on AWS EC2)│
+                        │                          └─────────┬─────────┘
+                        │                                    │
+                        │  read metadata      write image + metadata
+                        ▼                                    ▼
+        ┌───────────────┴───────────────────────────────────┴───────┐
+        │                                                            │
+        ▼                                                            ▼
+┌───────────────┐                                          ┌───────────────┐
+│   AWS S3      │                                          │   AWS RDS     │
+│ (File Storage)│                                          │ (PostgreSQL)  │
+└───────────────┘                                          └───────────────┘
 
 ```
 
@@ -123,10 +144,11 @@ The application follows a modular and layered architecture, separating concerns 
 1. The `Client` sends HTTP requests to the `FastAPI` application (running in a Docker container on AWS EC2)
 2. For image uploads:
 
-   * The file is processed (resize + thumbnail)
-   * The processed image is uploaded to `AWS S3`
-3. Metadata (file URL, filename, user) is stored in `PostgreSQL` (`AWS RDS`)
-4. The API returns responses back to the client
+   * The API enqueues a background task on `Redis` and immediately returns a `task_id`
+   * The `Celery` worker processes the image (resize + thumbnail), uploads it to `AWS S3`, and stores metadata in `PostgreSQL` (`AWS RDS`)
+   * The task result is written to the `Redis` result backend
+3. The `Client` polls `GET /tasks/{task_id}` to retrieve the processing status and result
+4. Read endpoints (`GET /images`, `GET /images/{id}`) return metadata directly from `PostgreSQL`
 
 ### Deployment Context
 
@@ -203,12 +225,35 @@ multipart/form-data
 file: <image_file>
 ```
 
+The image is processed asynchronously. The endpoint enqueues a background task and returns a `task_id` immediately (HTTP `200`); the image record is created by the worker once processing completes.
+
 Response:
 
 ```json id="m4c1qx"
 {
-  "id": 1,
-  "filename": "example.jpg"
+  "task_id": "8d5c1f2a-3b47-4e9a-9c1d-2f6b7a0e1234"
+}
+```
+
+---
+
+#### `GET /tasks/{task_id}`
+
+Retrieve the status and result of a background processing task (requires authentication).
+
+While the task is running, `status` is `PENDING`/`STARTED` and `result` is `null`. Once finished, `status` is `SUCCESS` and `result` contains the created image record.
+
+Response:
+
+```json id="t1a2s3"
+{
+  "task_id": "8d5c1f2a-3b47-4e9a-9c1d-2f6b7a0e1234",
+  "status": "SUCCESS",
+  "result": {
+    "id": 1,
+    "filename": "example.jpg",
+    "path": "https://s3.amazonaws.com/..."
+  }
 }
 ```
 
@@ -216,7 +261,7 @@ Response:
 
 #### `GET /images`
 
-Retrieve a list of uploaded images.
+Retrieve the list of images owned by the authenticated user (requires authentication).
 
 Response:
 
@@ -225,7 +270,8 @@ Response:
   {
     "id": 1,
     "filename": "example.jpg",
-    "path": "https://s3.amazonaws.com/..."
+    "path": "https://s3.amazonaws.com/...",
+    "user_id": 1
   }
 ]
 ```
@@ -234,7 +280,7 @@ Response:
 
 #### `GET /images/{image_id}`
 
-Retrieve a single image record by ID.
+Retrieve a single image owned by the authenticated user (requires authentication). Returns `404 Not Found` if the image does not exist or belongs to another user.
 
 Response:
 
@@ -242,7 +288,8 @@ Response:
 {
   "id": 1,
   "filename": "example.jpg",
-  "path": "https://s3.amazonaws.com/..."
+  "path": "https://s3.amazonaws.com/...",
+  "user_id": 1
 }
 ```
 
@@ -320,6 +367,19 @@ The application uses environment variables for configuration. All variables are 
 
 ---
 
+### Task Queue Configuration (Celery / Redis)
+
+| Variable                | Description                          | Default                    |
+| ----------------------- | ------------------------------------ | -------------------------- |
+| `CELERY_BROKER_URL`     | Redis URL used as the message broker | `redis://localhost:6379/0` |
+| `CELERY_RESULT_BACKEND` | Redis URL used as the result backend | `redis://localhost:6379/0` |
+
+In production (where `backend` and `worker` run as Docker Compose services), set the host to
+the Redis service name: `redis://redis:6379/0`. Locally, the default `localhost` value works
+when Redis is exposed on port `6379` (see **Local Development**).
+
+---
+
 ### Example `.env`
 
 ```env
@@ -333,6 +393,9 @@ AWS_REGION=your_region
 
 STORAGE_TYPE=s3
 UPLOAD_DIR=uploads
+
+CELERY_BROKER_URL=redis://redis:6379/0
+CELERY_RESULT_BACKEND=redis://redis:6379/0
 ```
 
 ## Local Development
@@ -358,15 +421,39 @@ Refer to the example configuration in the **Environment Variables** section.
 
 ---
 
-### 3. Run with Docker
+### 3. Start local infrastructure (Redis + PostgreSQL)
+
+Local-only services live in `docker-compose.dev.yml` (kept separate from the production
+`docker-compose.yml`). Start them with:
 
 ```bash
-docker-compose up --build
+docker compose -f docker-compose.dev.yml up -d
+```
+
+This runs Redis (broker/result backend) and a local PostgreSQL matching the default
+`DATABASE_URL` (`postgresql://user:password@localhost:5432/app_db`).
+
+---
+
+### 4. Install dependencies and run the app + worker
+
+The project uses a virtual environment. Install dependencies, then run the API and the
+Celery worker in two separate terminals:
+
+```bash
+python3 -m venv venv
+./venv/bin/python -m pip install -r requirements.txt
+
+# Terminal A — Celery worker
+./venv/bin/celery -A app.celery_app.celery_app worker --loglevel=info
+
+# Terminal B — FastAPI app
+./venv/bin/python -m uvicorn app.main:app --reload
 ```
 
 ---
 
-### 4. Access the API
+### 5. Access the API
 
 Open your browser and navigate to:
 
@@ -380,11 +467,12 @@ This will open the interactive Swagger UI where you can test all endpoints.
 
 ### Notes
 
-* The application connects to a remote database (`AWS RDS`) by default
-* For local development without AWS services:
-  * set `STORAGE_TYPE=local`
-  * optionally configure a local PostgreSQL instance and update `DATABASE_URL`
-* If using `STORAGE_TYPE=s3`, make sure your AWS credentials are correctly configured
+* For local development, set `STORAGE_TYPE=local` to store files on disk (no AWS needed);
+  `CELERY_BROKER_URL`/`CELERY_RESULT_BACKEND` default to `localhost` and work with the Redis
+  from `docker-compose.dev.yml`.
+* Both the API and the worker must be running for uploads to complete: the API enqueues the
+  task, and the worker processes it.
+* If using `STORAGE_TYPE=s3`, make sure your AWS credentials are correctly configured.
 
 ## Deployment
 
@@ -413,6 +501,10 @@ The application is deployed on `AWS EC2` using `Docker` and `docker-compose`, wi
 
 * The application runs on an `AWS EC2` instance
 * `Docker` and `docker-compose` are installed on the server
+* The production `docker-compose.yml` runs three services: `backend` (FastAPI), `redis`
+  (broker/result backend), and `worker` (Celery). All use `restart: unless-stopped` so they
+  come back automatically after an instance reboot (ensure the Docker daemon is enabled on boot:
+  `systemctl is-enabled docker`)
 * Environment variables are managed via a `.env` file on the server
 * The API is exposed on port `8000`
 
