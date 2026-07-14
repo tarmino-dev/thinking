@@ -10,9 +10,11 @@ services:
       - .:/app
     depends_on:
       - redis
+    restart: unless-stopped
 
   redis:
     image: redis:7
+    restart: unless-stopped
 
   worker:
     build: .
@@ -23,3 +25,4 @@ services:
       - .:/app
     depends_on:
       - redis
+    restart: unless-stopped
