@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "fun_projects/learning/number_guessing/**"
+  workflow_dispatch:
 
 jobs:
   test:
