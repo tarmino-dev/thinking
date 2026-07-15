@@ -7,6 +7,7 @@ on:
   pull_request:
     paths:
       - "fun_projects/learning/coffee_machine/**"
+  workflow_dispatch:
 
 jobs:
   test:
