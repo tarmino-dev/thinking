@@ -29,16 +29,11 @@ Production-oriented projects. Each lives on its own deployment branch where note
 
 ## Also Worth a Look
 
-Smaller projects that still show real engineering signal (tests, databases, external-API
-integrations) — a step above pure exercises.
+Smaller work that still shows real engineering signal — a step above pure exercises.
 
 - **[API integrations](fun_projects/api/)** — a collection of mini-apps working with external
   APIs (cafe API, flight deals, habit tracker, ISS notifier, quizzler, rain alert, stock news,
   workout tracker, and more).
-- **[Coffee Machine](fun_projects/learning/coffee_machine/)** — coffee-machine simulator with a
-  database layer, config, and unit tests (runs in CI).
-- **[Number Guessing](fun_projects/learning/number_guessing/)** — a small game with unit tests
-  (runs in CI).
 
 ---
 
@@ -55,6 +50,7 @@ not intended as showcase projects. All live under [`fun_projects/learning/`](fun
 - **GUI & games (Tkinter / Turtle):** `tkinter_basics`, `turtle_challenges`, `us_states_game`,
   `flash_cards`
 - **Web fundamentals (HTML/CSS):** `web`
+- **Apps with unit tests (run in CI):** `coffee_machine` (DB layer + config), `number_guessing`
 - **Flask course exercises:** `flask_course/` (blog templating, auth, bootstrap intros,
   SQLAlchemy/SQLite tests, tindog, top-movies, and more)
 
