@@ -105,6 +105,7 @@ The application follows a modular and layered architecture, separating concerns 
    * stores metadata (file URL, filename, user reference) in `PostgreSQL` (`AWS RDS`)
    * the task result is saved to the `Redis` result backend
 5. The client polls `GET /tasks/{task_id}` until the task reports `SUCCESS` with the created image record
+6. Read endpoints (`GET /images`, `GET /images/{id}`) return metadata directly from `PostgreSQL`
 
 ## Architecture Diagram
 
@@ -138,17 +139,6 @@ The application follows a modular and layered architecture, separating concerns 
 └───────────────┘                                          └───────────────┘
 
 ```
-
-### Flow Description
-
-1. The `Client` sends HTTP requests to the `FastAPI` application (running in a Docker container on AWS EC2)
-2. For image uploads:
-
-   * The API enqueues a background task on `Redis` and immediately returns a `task_id`
-   * The `Celery` worker processes the image (resize + thumbnail), uploads it to `AWS S3`, and stores metadata in `PostgreSQL` (`AWS RDS`)
-   * The task result is written to the `Redis` result backend
-3. The `Client` polls `GET /tasks/{task_id}` to retrieve the processing status and result
-4. Read endpoints (`GET /images`, `GET /images/{id}`) return metadata directly from `PostgreSQL`
 
 ### Deployment Context
 
