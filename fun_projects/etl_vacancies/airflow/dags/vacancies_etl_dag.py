@@ -1,3 +1,4 @@
+import logging
 from datetime import datetime, timedelta
 
 from airflow import DAG
@@ -29,8 +30,11 @@ def extract_and_load_raw():
 
 def transform_and_load_staging():
     raw = read_raw_vacancies()
-    transformed = transform_vacancies(raw)
-    load_staging_vacancies(transformed)
+    valid, rejected = transform_vacancies(raw)
+    if rejected:
+        logging.warning("Skipped %s invalid vacancies: %s", len(rejected), rejected)
+    if valid:
+        load_staging_vacancies(valid)
 
 
 dag = DAG(

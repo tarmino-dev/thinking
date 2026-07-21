@@ -20,8 +20,11 @@ def main():
 
     # RAW -> STAGING
     raw = read_raw_vacancies()
-    transformed = transform_vacancies(raw)
-    load_staging_vacancies(transformed)
+    valid, rejected = transform_vacancies(raw)
+    if rejected:
+        logging.warning("Skipped %s invalid vacancies: %s", len(rejected), rejected)
+    if valid:
+        load_staging_vacancies(valid)
 
     # STAGING -> SQL aggregation -> MART
     refresh_skill_stats()
