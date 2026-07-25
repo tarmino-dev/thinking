@@ -1,9 +1,10 @@
+import logging
 from datetime import datetime, timedelta
 
 from airflow import DAG
 from airflow.operators.python import PythonOperator
 
-from etl.extract.vacancies_extractor import extract_vacancies_from_json
+from etl.extract.vacancies_extractor import extract_vacancies_from_json, source_filename
 from etl.load.load_raw import load_raw_vacancies
 from etl.extract.raw_reader import read_raw_vacancies
 from etl.transform.vacancies_transformer import transform_vacancies
@@ -21,16 +22,20 @@ default_args = {
 }
 
 
-def extract_and_load_raw():
-    path = Path("/opt/airflow/etl_project/data/raw/vacancies_2024_01_10.json")
+def extract_and_load_raw(**context):
+    run_date = context["logical_date"]
+    path = Path("/opt/airflow/etl_project/data/raw") / source_filename(run_date)
     vacancies = extract_vacancies_from_json(path)
     load_raw_vacancies(vacancies)
 
 
 def transform_and_load_staging():
     raw = read_raw_vacancies()
-    transformed = transform_vacancies(raw)
-    load_staging_vacancies(transformed)
+    valid, rejected = transform_vacancies(raw)
+    if rejected:
+        logging.warning("Skipped %s invalid vacancies: %s", len(rejected), rejected)
+    if valid:
+        load_staging_vacancies(valid)
 
 
 dag = DAG(
