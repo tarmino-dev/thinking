@@ -108,13 +108,32 @@ Default credentials:
 
 ### Run the ETL Pipeline
 
+The extractor reads its source file by date: it looks for
+`data/raw/vacancies_YYYY_MM_DD.json`, where the date is the DAG's logical
+date (or, for a local run, the `--date` argument). The repo ships one sample
+export, `vacancies_2024_01_10.json`, so trigger the DAG for that date rather
+than "now" — otherwise the run fails with a "No vacancies export found"
+error.
+
 1.  Locate the DAG:
 
         vacancies_etl_pipeline
 
 2.  Enable the DAG (toggle switch)
 
-3.  Click **Trigger DAG**
+3.  Trigger it for the sample export date:
+    - Click **Trigger DAG w/ config**
+    - Set **Logical Date** to `2024-01-10`
+    - Run
+
+    (A plain **Trigger DAG** click uses today's date and will fail unless a
+    matching `vacancies_YYYY_MM_DD.json` file exists for that date.)
+
+To run the pipeline directly with Python instead of Airflow:
+
+`python -m etl.main --date 2024-01-10`
+
+(defaults to today's date if `--date` is omitted)
 
 ### Verify Results
 
