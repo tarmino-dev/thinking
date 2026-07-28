@@ -1,5 +1,15 @@
 # Changelog
 
+## 2026-07-28
+
+### Fixes
+- **[etl_vacancies]** Make vacancy transform resilient to malformed `published_at` values, isolating bad records instead of failing the whole batch (#71)
+- **[etl_vacancies]** Derive the source export file path from the run date instead of a hardcoded filename (#71)
+
+### Chores
+- **[etl_vacancies]** Add a CLAUDE.md documenting project guidelines and incremental development practices (#71)
+- **[etl_vacancies]** Document the date-based source file naming convention in the README (#72)
+
 ## 2026-07-21
 
 ### Features
