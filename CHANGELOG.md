@@ -1,5 +1,13 @@
 # Changelog
 
+## 2026-08-04
+
+### Fixes
+- **[etl_vacancies]** Fix source file path derivation to use the run date and make vacancy transform resilient to invalid `published_at` values (#71)
+
+### Chores
+- **[etl_vacancies]** Add CLAUDE.md project guidelines, test coverage for vacancy transform and source filename date formatting, and document date-based source file naming (#71, #72)
+
 ## 2026-07-21
 
 ### Features
