@@ -45,3 +45,6 @@ Local events are sourced from the [Ticketmaster Discovery API](https://developer
    ```
 4. Open `.env` and paste your key as the value of `TICKETMASTER_API_KEY`. This file is
    gitignored — never commit it.
+5. Also in `.env`, set `USER_LATITUDE` and `USER_LONGITUDE` to your approximate home
+   coordinates (this is what local events are searched around), and optionally
+   `USER_SEARCH_RADIUS_KM` (defaults to 20 if not set).

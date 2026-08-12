@@ -22,3 +22,17 @@ GOOGLE_CALENDAR_SCOPES = ["https://www.googleapis.com/auth/calendar.readonly"]
 # None if not set — events_module is responsible for failing loudly when it
 # actually tries to use a missing key, not this module.
 TICKETMASTER_API_KEY = os.environ.get("TICKETMASTER_API_KEY")
+
+
+def _get_float_env(name: str) -> float | None:
+    value = os.environ.get(name)
+    return float(value) if value else None
+
+
+# User's approximate home location, used to search for nearby events.
+# Read from the environment (not hardcoded) for the same reason as the API
+# keys above: this is personal data and the repo is public — it must never
+# end up committed to git.
+USER_LATITUDE = _get_float_env("USER_LATITUDE")
+USER_LONGITUDE = _get_float_env("USER_LONGITUDE")
+USER_SEARCH_RADIUS_KM = _get_float_env("USER_SEARCH_RADIUS_KM") or 20.0

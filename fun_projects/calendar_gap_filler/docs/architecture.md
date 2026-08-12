@@ -8,11 +8,15 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-As of this commit, only environment scaffolding exists (dependencies,
-`.gitignore`, OAuth config constants, setup docs in `README.md`). No
-application code has been written yet. This document describes the target
-architecture the code will grow into, module by module, per the roadmap below.
-It will be updated as each module is actually built.
+Calendar Module (Phase 1) is complete: `calendar_module/client.py` reads
+busy periods from Google Calendar, `calendar_module/gaps.py` computes free
+slots, both covered by a manual e2e check and unit tests. Event Source
+Module (Phase 2) is in progress: environment/config is set up and
+`events_module/client.py` fetches and normalizes events from the
+Ticketmaster Discovery API; unit tests and a manual e2e check are next.
+This document describes the target architecture the code is growing into,
+module by module, per the roadmap below, and is updated as each module is
+actually built.
 
 ## Modules (planned)
 
@@ -23,7 +27,7 @@ together.
 | Module | Responsibility | Notes |
 |---|---|---|
 | `calendar_module/` | Reads the user's Google Calendar (read-only) and computes free time slots ("gaps"). | Split into `client.py` (Google Calendar API access) and `gaps.py` (pure gap-finding logic, no I/O, easy to unit test). |
-| `events_module/` | Fetches candidate local events. | Uses the Ticketmaster Discovery API; normalizes results into a common `Event` shape. |
+| `events_module/` | Fetches candidate local events. | Uses the Ticketmaster Discovery API; normalizes results into a common `Event` shape. `Event.duration_minutes` is often `None` — Ticketmaster frequently doesn't provide an event's end time. |
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
@@ -52,13 +56,20 @@ together.
    async-friendly for outbound calls to the event source API.
 5. **Storage**: SQLite for the MVP; migration to Postgres deferred to the
    deployment phase.
+6. **Event search geolocation**: `latlong` + `radius` query params on the
+   Ticketmaster Discovery API, over `postalCode` (format varies too much
+   between countries) or `geoPoint` (Ticketmaster's newer, non-deprecated
+   option, but requires geohash-encoding the user's coordinates — an extra
+   dependency for no real benefit at our scale). Risk: `latlong` is marked
+   deprecated in Ticketmaster's docs and could be removed in a future API
+   version, at which point we'd need to switch to `geoPoint`.
 
 ## Roadmap (high level)
 
 | # | Phase | Status |
 |---|---|---|
-| 1 | Calendar Module | In progress — env/OAuth scaffolding done; `client.py` and `gaps.py` next |
-| 2 | Event Source Module (Ticketmaster integration) | Not started |
+| 1 | Calendar Module | Done |
+| 2 | Event Source Module (Ticketmaster integration) | In progress — env/config and `client.py` done; unit tests and manual e2e check next |
 | 3 | Profile Module | Not started |
 | 4 | ML Ranking Module (TinyBERT embeddings) | Not started |
 | 5 | Orchestrator | Not started |
