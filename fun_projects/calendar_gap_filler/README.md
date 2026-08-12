@@ -31,3 +31,17 @@ The app reads your Google Calendar (read-only) via the official Google Calendar 
 6. On first run, the app will open a browser window asking you to log in and grant
    read-only calendar access. After that, a `token.json` file is created and cached
    locally so you won't need to log in again (also gitignored).
+
+### 3. Ticketmaster API key
+
+Local events are sourced from the [Ticketmaster Discovery API](https://developer.ticketmaster.com/products-and-docs/apis/discovery-api/v2/)
+(free tier: 5000 calls/day, 5 requests/second).
+
+1. Register for a developer account at the [Ticketmaster Developer Portal](https://developer-account.ticketmaster.com/user/register).
+2. Once logged in, create an app to get your API key (shown on your account/app dashboard).
+3. Copy `.env.example` to `.env`:
+   ```bash
+   cp .env.example .env
+   ```
+4. Open `.env` and paste your key as the value of `TICKETMASTER_API_KEY`. This file is
+   gitignored — never commit it.
