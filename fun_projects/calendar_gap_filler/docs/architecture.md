@@ -8,15 +8,15 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Calendar Module (Phase 1) is complete: `calendar_module/client.py` reads
-busy periods from Google Calendar, `calendar_module/gaps.py` computes free
-slots, both covered by a manual e2e check and unit tests. Event Source
-Module (Phase 2) is in progress: environment/config is set up and
-`events_module/client.py` fetches and normalizes events from the
-Ticketmaster Discovery API; unit tests and a manual e2e check are next.
-This document describes the target architecture the code is growing into,
-module by module, per the roadmap below, and is updated as each module is
-actually built.
+Calendar Module (Phase 1) and Event Source Module (Phase 2) are both
+complete. `calendar_module/client.py` reads busy periods from Google
+Calendar and `calendar_module/gaps.py` computes free slots; `events_module/client.py`
+searches the Ticketmaster Discovery API and normalizes results into `Event`
+objects. Both modules are covered by unit tests and have been verified
+against the real APIs via the manual scripts in `scripts/`. Profile Module
+(Phase 3) is next. This document describes the target architecture the code
+is growing into, module by module, per the roadmap below, and is updated as
+each module is actually built.
 
 ## Modules (planned)
 
@@ -62,14 +62,17 @@ together.
    option, but requires geohash-encoding the user's coordinates — an extra
    dependency for no real benefit at our scale). Risk: `latlong` is marked
    deprecated in Ticketmaster's docs and could be removed in a future API
-   version, at which point we'd need to switch to `geoPoint`.
+   version, at which point we'd need to switch to `geoPoint`. Note:
+   `radius` must be sent as an integer (error `DIS1014` otherwise) even
+   though Ticketmaster's own docs list it as a generic String —
+   `events_module.client.search_events` rounds it before sending.
 
 ## Roadmap (high level)
 
 | # | Phase | Status |
 |---|---|---|
 | 1 | Calendar Module | Done |
-| 2 | Event Source Module (Ticketmaster integration) | In progress — env/config and `client.py` done; unit tests and manual e2e check next |
+| 2 | Event Source Module (Ticketmaster integration) | Done |
 | 3 | Profile Module | Not started |
 | 4 | ML Ranking Module (TinyBERT embeddings) | Not started |
 | 5 | Orchestrator | Not started |
