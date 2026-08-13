@@ -60,7 +60,11 @@ def search_events(
         params={
             "apikey": TICKETMASTER_API_KEY,
             "latlong": f"{latitude},{longitude}",
-            "radius": radius_km,
+            # Ticketmaster rejects non-integer radius values (error DIS1014:
+            # "must be an integer value between 0 and 19,999"), even though
+            # its own docs list this param as a generic String. round()
+            # rather than int() so e.g. 20.6 becomes 21, not 20.
+            "radius": round(radius_km),
             "unit": "km",
             "startDateTime": _format_for_api(date_from),
             "endDateTime": _format_for_api(date_to),
