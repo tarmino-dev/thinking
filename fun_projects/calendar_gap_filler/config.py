@@ -36,3 +36,7 @@ def _get_float_env(name: str) -> float | None:
 USER_LATITUDE = _get_float_env("USER_LATITUDE")
 USER_LONGITUDE = _get_float_env("USER_LONGITUDE")
 USER_SEARCH_RADIUS_KM = _get_float_env("USER_SEARCH_RADIUS_KM") or 20.0
+
+# User interest profile (see profile.example.json for the shape and
+# README.md for setup). Gitignored — never commit real values.
+PROFILE_FILE = "profile.json"

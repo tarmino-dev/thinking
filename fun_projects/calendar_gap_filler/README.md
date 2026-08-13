@@ -48,3 +48,14 @@ Local events are sourced from the [Ticketmaster Discovery API](https://developer
 5. Also in `.env`, set `USER_LATITUDE` and `USER_LONGITUDE` to your approximate home
    coordinates (this is what local events are searched around), and optionally
    `USER_SEARCH_RADIUS_KM` (defaults to 20 if not set).
+
+### 4. Interest profile
+
+1. Copy `profile.example.json` to `profile.json`:
+   ```bash
+   cp profile.example.json profile.json
+   ```
+2. Edit `profile.json`: list your own interests as free-text phrases (e.g. "jazz
+   music", "board games"), and set `waking_hours_start`/`waking_hours_end` to the
+   hours you'd actually want event suggestions in. This file is gitignored — never
+   commit it.
