@@ -30,6 +30,15 @@ SAMPLE_EVENT_FULL = {
     "_embedded": {"venues": [{"name": "Trump National Doral", "city": {"name": "Miami"}}]},
 }
 
+SAMPLE_EVENT_VENUE_WITHOUT_NAME = {
+    "id": "venue001",
+    "name": "Event At An Unnamed Venue",
+    "dates": {"start": {"dateTime": "2016-03-06T18:00:00Z"}},
+    # Real Ticketmaster data occasionally has a venue entry with no "name"
+    # field at all — this used to crash _parse_event with a KeyError.
+    "_embedded": {"venues": [{"city": {"name": "Miami"}}]},
+}
+
 SAMPLE_EVENT_TBA = {
     "id": "def456",
     "name": "TBA Show",
@@ -89,6 +98,12 @@ def test_parse_event_extracts_basic_fields():
     assert event.venue_name == "Trump National Doral"
     assert event.description == "Bring your own clubs."
     assert event.classification == "Sports, Golf, PGA Tour"
+
+
+def test_parse_event_venue_name_is_none_when_venue_has_no_name():
+    event = _parse_event(SAMPLE_EVENT_VENUE_WITHOUT_NAME)
+
+    assert event.venue_name is None
 
 
 def test_parse_event_duration_is_none_when_end_missing():

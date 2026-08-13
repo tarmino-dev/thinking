@@ -116,7 +116,7 @@ def _parse_event(raw_event: dict) -> Event:
         duration_minutes=duration_minutes,
         classification=_format_classification(raw_event.get("classifications", [])),
         description=raw_event.get("info") or raw_event.get("pleaseNote"),
-        venue_name=venues[0]["name"] if venues else None,
+        venue_name=venues[0].get("name") if venues else None,
         url=raw_event.get("url"),
     )
 
