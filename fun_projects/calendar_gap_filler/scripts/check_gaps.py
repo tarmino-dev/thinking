@@ -12,21 +12,18 @@ from datetime import datetime, timedelta
 
 from calendar_module.client import get_busy_periods
 from calendar_module.gaps import find_gaps
+from profile_module.profile import load_profile
 
 DAYS_AHEAD = 7
 
-# Placeholder "waking hours" window for each day. There's no user profile /
-# preferences module yet (that's a later phase), so this is hardcoded for
-# now — good enough for a manual sanity check.
-DAY_START_HOUR = 8
-DAY_END_HOUR = 22
-
 
 def main() -> None:
+    profile = load_profile()
+
     today = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
 
-    first_day_start = today.replace(hour=DAY_START_HOUR)
-    last_day_end = (today + timedelta(days=DAYS_AHEAD)).replace(hour=DAY_END_HOUR)
+    first_day_start = today.replace(hour=profile.waking_hours_start)
+    last_day_end = (today + timedelta(days=DAYS_AHEAD)).replace(hour=profile.waking_hours_end)
 
     # One API call for the whole window — find_gaps() below already clips
     # busy periods to each day's own start/end, so we don't need to fetch
@@ -35,8 +32,8 @@ def main() -> None:
 
     for day_offset in range(DAYS_AHEAD + 1):
         day = today + timedelta(days=day_offset)
-        day_start = day.replace(hour=DAY_START_HOUR)
-        day_end = day.replace(hour=DAY_END_HOUR)
+        day_start = day.replace(hour=profile.waking_hours_start)
+        day_end = day.replace(hour=profile.waking_hours_end)
 
         for gap in find_gaps(busy_periods, day_start, day_end):
             print(f"{gap.start:%d.%m %H:%M}–{gap.end:%H:%M}")
