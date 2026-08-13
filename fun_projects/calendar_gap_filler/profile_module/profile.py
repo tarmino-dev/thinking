@@ -37,6 +37,14 @@ def load_profile() -> Profile:
     with open(PROFILE_FILE) as f:
         raw = json.load(f)
 
+    required_fields = ("interests", "waking_hours_start", "waking_hours_end")
+    missing = [field for field in required_fields if field not in raw]
+    if missing:
+        raise RuntimeError(
+            f"{PROFILE_FILE} is missing required field(s): {', '.join(missing)}. "
+            "See profile.example.json for the expected shape."
+        )
+
     return Profile(
         interests=raw["interests"],
         waking_hours_start=raw["waking_hours_start"],
