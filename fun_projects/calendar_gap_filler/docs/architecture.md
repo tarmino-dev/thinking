@@ -8,15 +8,18 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Calendar Module (Phase 1) and Event Source Module (Phase 2) are both
-complete. `calendar_module/client.py` reads busy periods from Google
-Calendar and `calendar_module/gaps.py` computes free slots; `events_module/client.py`
-searches the Ticketmaster Discovery API and normalizes results into `Event`
-objects. Both modules are covered by unit tests and have been verified
-against the real APIs via the manual scripts in `scripts/`. Profile Module
-(Phase 3) is next. This document describes the target architecture the code
-is growing into, module by module, per the roadmap below, and is updated as
-each module is actually built.
+Calendar Module (Phase 1), Event Source Module (Phase 2), and Profile
+Module (Phase 3) are all complete. `calendar_module/client.py` reads busy
+periods from Google Calendar and `calendar_module/gaps.py` computes free
+slots; `events_module/client.py` searches the Ticketmaster Discovery API and
+normalizes results into `Event` objects; `profile_module/profile.py` loads
+the user's interests and waking hours from a local `profile.json`.
+`scripts/check_gaps.py` now uses the real profile instead of hardcoded
+hours. All three modules are covered by unit tests and have been verified
+against real data. ML Ranking Module (Phase 4) is next. This document
+describes the target architecture the code is growing into, module by
+module, per the roadmap below, and is updated as each module is actually
+built.
 
 ## Modules (planned)
 
@@ -73,7 +76,7 @@ together.
 |---|---|---|
 | 1 | Calendar Module | Done |
 | 2 | Event Source Module (Ticketmaster integration) | Done |
-| 3 | Profile Module | Not started |
+| 3 | Profile Module | Done |
 | 4 | ML Ranking Module (TinyBERT embeddings) | Not started |
 | 5 | Orchestrator | Not started |
 | 6 | API Layer (FastAPI) | Not started |
