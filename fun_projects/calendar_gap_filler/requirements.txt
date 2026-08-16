@@ -4,3 +4,4 @@ google-auth-oauthlib
 pytest
 requests
 python-dotenv
+sentence-transformers

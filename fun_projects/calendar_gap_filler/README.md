@@ -59,3 +59,10 @@ Local events are sourced from the [Ticketmaster Discovery API](https://developer
    music", "board games"), and set `waking_hours_start`/`waking_hours_end` to the
    hours you'd actually want event suggestions in. This file is gitignored — never
    commit it.
+
+### 5. ML ranking model
+
+Event ranking uses a small pretrained TinyBERT model (`sentence-transformers`).
+No setup needed — it's downloaded from the Hugging Face Hub automatically the
+first time it's used (a couple hundred MB) and cached locally after that. The
+first run needs an internet connection; later runs work offline.

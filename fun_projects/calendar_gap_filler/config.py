@@ -40,3 +40,7 @@ USER_SEARCH_RADIUS_KM = _get_float_env("USER_SEARCH_RADIUS_KM") or 20.0
 # User interest profile (see profile.example.json for the shape and
 # README.md for setup). Gitignored — never commit real values.
 PROFILE_FILE = "profile.json"
+
+# TinyBERT checkpoint used for ranking events against the interest profile.
+# Downloaded from the Hugging Face Hub and cached locally on first use.
+TINYBERT_MODEL_NAME = "sentence-transformers/paraphrase-TinyBERT-L6-v2"
