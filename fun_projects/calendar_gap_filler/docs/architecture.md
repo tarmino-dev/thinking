@@ -8,18 +8,21 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Calendar Module (Phase 1), Event Source Module (Phase 2), and Profile
-Module (Phase 3) are all complete. `calendar_module/client.py` reads busy
-periods from Google Calendar and `calendar_module/gaps.py` computes free
-slots; `events_module/client.py` searches the Ticketmaster Discovery API and
-normalizes results into `Event` objects; `profile_module/profile.py` loads
-the user's interests and waking hours from a local `profile.json`.
-`scripts/check_gaps.py` now uses the real profile instead of hardcoded
-hours. All three modules are covered by unit tests and have been verified
-against real data. ML Ranking Module (Phase 4) is next. This document
-describes the target architecture the code is growing into, module by
-module, per the roadmap below, and is updated as each module is actually
-built.
+Calendar Module (Phase 1), Event Source Module (Phase 2), Profile Module
+(Phase 3), and ML Ranking Module (Phase 4) are all complete.
+`calendar_module/client.py` reads busy periods from Google Calendar and
+`calendar_module/gaps.py` computes free slots; `events_module/client.py`
+searches the Ticketmaster Discovery API and normalizes results into `Event`
+objects; `profile_module/profile.py` loads the user's interests and waking
+hours from a local `profile.json`; `classifier_module/embeddings.py` wraps
+TinyBERT and `classifier_module/ranking.py` ranks events against the
+profile by cosine similarity. All four modules are covered by unit tests
+and have been verified against real data (`scripts/check_gaps.py`,
+`scripts/check_events.py`, `scripts/check_ranking.py`). Orchestrator
+(Phase 5) is next — the first phase that actually wires all four modules
+together into one pipeline. This document describes the target
+architecture the code is growing into, module by module, per the roadmap
+below, and is updated as each module is actually built.
 
 ## Modules (planned)
 
@@ -60,7 +63,18 @@ together.
    `torch>=2.5`, Intel Mac setups must use the pinned, known-working trio
    in `requirements.txt` (`torch==2.2.2`, `transformers==4.38.2`,
    `sentence-transformers==2.5.1`, `numpy<2`) instead of the latest
-   releases.
+   releases. Note: real-world cosine similarity scores from TinyBERT (and
+   BERT-style sentence embeddings generally) cluster in a narrow,
+   compressed range rather than spanning the full [-1, 1] — a well-known
+   characteristic of these models (sometimes called embedding
+   "anisotropy"), confirmed on this project's own data via
+   `scripts/check_ranking.py` (scores landed around 0.14-0.30 for real
+   events). The practical consequence: treat scores as a *relative*
+   ranking signal (this event beats that one) — never compare against a
+   fixed absolute threshold like "only show score > 0.5", since a
+   genuinely great match may never reach that number. `rank_events()`
+   already only sorts, it doesn't filter by a threshold, which turns out
+   to be the right call for this reason.
 4. **Web framework**: FastAPI — typed, low-boilerplate, built-in docs,
    async-friendly for outbound calls to the event source API.
 5. **Storage**: SQLite for the MVP; migration to Postgres deferred to the
@@ -83,7 +97,7 @@ together.
 | 1 | Calendar Module | Done |
 | 2 | Event Source Module (Ticketmaster integration) | Done |
 | 3 | Profile Module | Done |
-| 4 | ML Ranking Module (TinyBERT embeddings) | Not started |
+| 4 | ML Ranking Module (TinyBERT embeddings) | Done |
 | 5 | Orchestrator | Not started |
 | 6 | API Layer (FastAPI) | Not started |
 | 7 | Persistence (SQLite) | Not started — `docs/er_diagram.mermaid` gets its first real content here, once the actual tables (profile, cached events, feedback) are designed |
