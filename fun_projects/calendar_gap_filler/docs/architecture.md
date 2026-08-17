@@ -54,7 +54,13 @@ together.
    checkpoint (`paraphrase-TinyBERT-L6-v2`) for sentence embeddings, ranked
    by cosine similarity against the user's interest profile. No fine-tuning
    at this stage — revisit only if off-the-shelf ranking quality proves
-   insufficient.
+   insufficient. Note: PyTorch stopped publishing pip wheels for Intel
+   macOS (x86_64) after `torch==2.2.2` (deprecation announced Jan 2024).
+   Since current `transformers`/`sentence-transformers` require
+   `torch>=2.5`, Intel Mac setups must use the pinned, known-working trio
+   in `requirements.txt` (`torch==2.2.2`, `transformers==4.38.2`,
+   `sentence-transformers==2.5.1`, `numpy<2`) instead of the latest
+   releases.
 4. **Web framework**: FastAPI — typed, low-boilerplate, built-in docs,
    async-friendly for outbound calls to the event source API.
 5. **Storage**: SQLite for the MVP; migration to Postgres deferred to the
