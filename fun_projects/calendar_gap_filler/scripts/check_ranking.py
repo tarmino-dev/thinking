@@ -10,26 +10,12 @@ and real nearby events. Run it from the project root:
 from datetime import datetime, timedelta
 
 from classifier_module.embeddings import embed_texts
-from classifier_module.ranking import rank_events
+from classifier_module.ranking import event_text, rank_events
 from config import USER_LATITUDE, USER_LONGITUDE, USER_SEARCH_RADIUS_KM
-from events_module.client import Event, search_events
+from events_module.client import search_events
 from profile_module.profile import load_profile
 
 DAYS_AHEAD = 7
-
-
-def _event_text(event: Event) -> str:
-    """Build a single descriptive string per event to feed into the
-    embedding model. Combines whatever fields happen to be available —
-    name is the only one guaranteed to exist; classification and
-    description are often missing (see events_module.client).
-
-    NOTE: this will likely move into classifier_module once the
-    orchestrator (Phase 5) needs the exact same text-building logic —
-    kept here for now since this script is still its only user.
-    """
-    parts = [event.name, event.classification, event.description]
-    return ". ".join(part for part in parts if part)
 
 
 def main() -> None:
@@ -48,7 +34,7 @@ def main() -> None:
         print(f"No events found nearby in the next {DAYS_AHEAD} days — nothing to rank.")
         return
 
-    event_embeddings = embed_texts([_event_text(event) for event in events])
+    event_embeddings = embed_texts([event_text(event) for event in events])
     interest_embeddings = embed_texts(profile.interests)
 
     ranked = rank_events(events, event_embeddings, interest_embeddings)

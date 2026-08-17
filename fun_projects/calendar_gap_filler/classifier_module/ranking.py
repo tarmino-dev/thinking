@@ -22,6 +22,16 @@ class RankedEvent:
     score: float
 
 
+def event_text(event: Event) -> str:
+    """Build a single descriptive string for an event, for feeding into the
+    embedding model. Combines whatever fields happen to be available — name
+    is the only one guaranteed to exist; classification and description are
+    often missing (see events_module.client).
+    """
+    parts = [event.name, event.classification, event.description]
+    return ". ".join(part for part in parts if part)
+
+
 def rank_events(
     events: list[Event],
     event_embeddings: list[list[float]],
