@@ -91,12 +91,23 @@ def _has_specific_start_time(raw_event: dict) -> bool:
 
 
 def _parse_datetime(iso_string: str) -> datetime:
-    """Parse a Ticketmaster timestamp. These are always UTC and end in a
-    literal 'Z' (e.g. "2016-07-27T23:30:00Z"). datetime.fromisoformat() only
-    started accepting that suffix directly in Python 3.11, so we normalize
-    it to an explicit "+00:00" offset first for portability.
+    """Parse a Ticketmaster timestamp and convert it to the local system
+    timezone.
+
+    Ticketmaster timestamps are always UTC and end in a literal 'Z' (e.g.
+    "2016-07-27T23:30:00Z"). datetime.fromisoformat() only started accepting
+    that suffix directly in Python 3.11, so we normalize it to an explicit
+    "+00:00" offset first for portability.
+
+    We then convert to local time so Event.start lines up with Gap.start /
+    Gap.end, which are already built in local time (see calendar_module and
+    core.py). Comparisons would be correct either way — Python compares
+    aware datetimes by absolute instant, regardless of timezone — but
+    mixing UTC and local timestamps makes anything we print to a human
+    confusing, even when it isn't actually wrong.
     """
-    return datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
+    utc_time = datetime.fromisoformat(iso_string.replace("Z", "+00:00"))
+    return utc_time.astimezone()
 
 
 def _parse_event(raw_event: dict) -> Event:

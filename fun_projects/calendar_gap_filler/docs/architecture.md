@@ -33,7 +33,7 @@ together.
 | Module | Responsibility | Notes |
 |---|---|---|
 | `calendar_module/` | Reads the user's Google Calendar (read-only) and computes free time slots ("gaps"). | Split into `client.py` (Google Calendar API access) and `gaps.py` (pure gap-finding logic, no I/O, easy to unit test). |
-| `events_module/` | Fetches candidate local events. | Uses the Ticketmaster Discovery API; normalizes results into a common `Event` shape. `Event.duration_minutes` is often `None` — Ticketmaster frequently doesn't provide an event's end time. |
+| `events_module/` | Fetches candidate local events. | Uses the Ticketmaster Discovery API; normalizes results into a common `Event` shape. `Event.duration_minutes` is often `None` — Ticketmaster frequently doesn't provide an event's end time. `Event.start` is converted from Ticketmaster's UTC timestamps to local system time at parse time, so it lines up with `Gap.start`/`Gap.end` (already local) for both comparisons and display — comparisons work regardless, but mixed timezones make printed output confusing. |
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
