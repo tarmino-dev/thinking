@@ -4,6 +4,8 @@ google-auth-oauthlib
 pytest
 requests
 python-dotenv
+fastapi
+uvicorn
 # Pinned together deliberately: PyTorch dropped pip wheels for Intel macOS
 # (x86_64) after torch==2.2.2 (Jan 2024) — newer sentence-transformers /
 # transformers require torch>=2.5, which simply has no wheel for that
