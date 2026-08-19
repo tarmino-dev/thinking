@@ -6,6 +6,7 @@ requests
 python-dotenv
 fastapi
 uvicorn
+httpx  # only actually used by fastapi.testclient.TestClient in tests/test_api_main.py
 # Pinned together deliberately: PyTorch dropped pip wheels for Intel macOS
 # (x86_64) after torch==2.2.2 (Jan 2024) — newer sentence-transformers /
 # transformers require torch>=2.5, which simply has no wheel for that
