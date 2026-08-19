@@ -8,21 +8,18 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Calendar Module (Phase 1), Event Source Module (Phase 2), Profile Module
-(Phase 3), and ML Ranking Module (Phase 4) are all complete.
-`calendar_module/client.py` reads busy periods from Google Calendar and
-`calendar_module/gaps.py` computes free slots; `events_module/client.py`
-searches the Ticketmaster Discovery API and normalizes results into `Event`
-objects; `profile_module/profile.py` loads the user's interests and waking
-hours from a local `profile.json`; `classifier_module/embeddings.py` wraps
-TinyBERT and `classifier_module/ranking.py` ranks events against the
-profile by cosine similarity. All four modules are covered by unit tests
-and have been verified against real data (`scripts/check_gaps.py`,
-`scripts/check_events.py`, `scripts/check_ranking.py`). Orchestrator
-(Phase 5) is next — the first phase that actually wires all four modules
-together into one pipeline. This document describes the target
-architecture the code is growing into, module by module, per the roadmap
-below, and is updated as each module is actually built.
+Phases 1-5 are all complete: Calendar Module, Event Source Module, Profile
+Module, ML Ranking Module, and the Orchestrator (`core.py`) that wires all
+four together into one real pipeline — `suggest_events()` loads the
+profile, finds this week's calendar gaps, fetches nearby events once,
+embeds everything once via TinyBERT, and returns each gap paired with its
+top-ranked event suggestions. Every module is covered by unit tests and has
+been verified end-to-end against real data
+(`scripts/check_suggestions.py`). API Layer (Phase 6) is next — the first
+phase that exposes this over HTTP instead of only being runnable as a local
+script. This document describes the target architecture the code is
+growing into, module by module, per the roadmap below, and is updated as
+each module is actually built.
 
 ## Modules (planned)
 
@@ -106,7 +103,7 @@ together.
 | 2 | Event Source Module (Ticketmaster integration) | Done |
 | 3 | Profile Module | Done |
 | 4 | ML Ranking Module (TinyBERT embeddings) | Done |
-| 5 | Orchestrator | Not started |
+| 5 | Orchestrator | Done |
 | 6 | API Layer (FastAPI) | Not started |
 | 7 | Persistence (SQLite) | Not started — `docs/er_diagram.mermaid` gets its first real content here, once the actual tables (profile, cached events, feedback) are designed |
 | 8 | Minimal UI | Not started — format tbd |
