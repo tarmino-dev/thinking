@@ -31,6 +31,10 @@ The app reads your Google Calendar (read-only) via the official Google Calendar 
 6. On first run, the app will open a browser window asking you to log in and grant
    read-only calendar access. After that, a `token.json` file is created and cached
    locally so you won't need to log in again (also gitignored).
+7. Because the consent screen is in "Testing" status, Google expires `token.json`
+   roughly every 7 days regardless of use. If you see an error about the refresh
+   token being expired or revoked, just delete `token.json` and run again — the
+   browser login flow will repeat and issue a fresh one.
 
 ### 3. Ticketmaster API key
 

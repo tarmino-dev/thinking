@@ -10,6 +10,7 @@ import os
 from dataclasses import dataclass
 from datetime import datetime
 
+from google.auth.exceptions import RefreshError
 from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -71,7 +72,18 @@ def _load_credentials() -> Credentials:
 
     if not credentials or not credentials.valid:
         if credentials and credentials.expired and credentials.refresh_token:
-            credentials.refresh(Request())
+            try:
+                credentials.refresh(Request())
+            except RefreshError as error:
+                # Expected roughly weekly: while the OAuth consent screen is
+                # in "Testing" status, Google expires refresh tokens after
+                # 7 days no matter how often they're used. Not a bug — just
+                # delete the token file and log in again via the browser.
+                raise RuntimeError(
+                    f"Google refresh token is no longer valid ({error}). This is expected "
+                    f"about once a week while the app is in OAuth 'Testing' mode. Delete "
+                    f"{GOOGLE_TOKEN_FILE} and run again to log in via the browser."
+                ) from error
         else:
             flow = InstalledAppFlow.from_client_secrets_file(GOOGLE_CREDENTIALS_FILE, GOOGLE_CALENDAR_SCOPES)
             credentials = flow.run_local_server(port=0)

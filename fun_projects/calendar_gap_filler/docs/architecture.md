@@ -48,7 +48,15 @@ together.
    feed URL because the product needs near-real-time availability, which the
    `.ics` export does not reliably provide. The official API is also the
    standard, well-supported path and leaves room to add multi-user OAuth
-   later without redesigning this module.
+   later without redesigning this module. Known trade-off: since the OAuth
+   consent screen is in "Testing" status (see README setup), Google expires
+   the refresh token after 7 days no matter how often it's used — expect
+   `token.json` to need regenerating (delete it, rerun, log in via browser
+   again) roughly weekly. `calendar_module.client` raises a clear
+   `RuntimeError` when this happens rather than the raw Google error.
+   Switching to "Production" status would remove this, at the cost of
+   going through Google's app verification — not worth it for a
+   single-user personal tool.
 2. **Event source**: Ticketmaster Discovery API (free tier, purpose-built for
    event discovery) over Eventbrite (organizer/ticketing focused, not
    discovery focused) and scraping (fragile, legally murky, unnecessary
