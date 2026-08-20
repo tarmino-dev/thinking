@@ -70,3 +70,40 @@ Event ranking uses a small pretrained TinyBERT model (`sentence-transformers`).
 No setup needed — it's downloaded from the Hugging Face Hub automatically the
 first time it's used (a couple hundred MB) and cached locally after that. The
 first run needs an internet connection; later runs work offline.
+
+## Running the API
+
+Once setup above is done, start the server from the project root:
+
+```bash
+source venv/bin/activate
+uvicorn api.main:app --reload
+```
+
+By default it listens on `http://127.0.0.1:8000`.
+
+**First run**: if `token.json` doesn't exist yet, complete the Google login once via
+a CLI script first, e.g.:
+
+```bash
+PYTHONPATH=. python3 scripts/check_suggestions.py
+```
+
+The API deliberately does *not* try to open the interactive browser login itself
+(see step 2.6 above) — it returns a `503` if `token.json` is missing instead of
+hanging the request while waiting for someone to log in.
+
+Fetch this week's gaps and suggestions:
+
+```bash
+curl http://127.0.0.1:8000/suggestions
+```
+
+Pipe through `python3 -m json.tool` for pretty-printed output:
+
+```bash
+curl -s http://127.0.0.1:8000/suggestions | python3 -m json.tool
+```
+
+Returns a JSON array of `{"gap": {...}, "suggestions": [...]}` objects. Interactive
+API docs (Swagger UI) are auto-generated at `http://127.0.0.1:8000/docs`.

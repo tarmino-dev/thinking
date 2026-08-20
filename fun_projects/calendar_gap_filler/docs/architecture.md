@@ -8,18 +8,22 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Phases 1-5 are all complete: Calendar Module, Event Source Module, Profile
-Module, ML Ranking Module, and the Orchestrator (`core.py`) that wires all
-four together into one real pipeline — `suggest_events()` loads the
-profile, finds this week's calendar gaps, fetches nearby events once,
-embeds everything once via TinyBERT, and returns each gap paired with its
-top-ranked event suggestions. Every module is covered by unit tests and has
-been verified end-to-end against real data
-(`scripts/check_suggestions.py`). API Layer (Phase 6) is next — the first
-phase that exposes this over HTTP instead of only being runnable as a local
-script. This document describes the target architecture the code is
-growing into, module by module, per the roadmap below, and is updated as
-each module is actually built.
+Phases 1-6 are all complete: Calendar Module, Event Source Module, Profile
+Module, ML Ranking Module, the Orchestrator (`core.py`) that wires all
+four together into one real pipeline, and the API Layer (`api/main.py`)
+that exposes it over HTTP — `suggest_events()` loads the profile, finds
+this week's calendar gaps, fetches nearby events once, embeds everything
+once via TinyBERT, and returns each gap paired with its top-ranked event
+suggestions; `GET /suggestions` wraps that same pipeline as JSON, with a
+`503` instead of a hang or a crash when the app isn't configured or
+authenticated yet. Every module is covered by unit tests and has been
+verified end-to-end against real data (`scripts/check_suggestions.py` for
+the pipeline, `uvicorn api.main:app` + curl/Swagger for the API). Persistence
+(Phase 7) is next — the first phase to introduce a database, once there's
+an actual reason to store something (cached events, feedback) instead of
+recomputing it per request. This document describes the target
+architecture the code is growing into, module by module, per the roadmap
+below, and is updated as each module is actually built.
 
 ## Modules (planned)
 
@@ -34,7 +38,7 @@ together.
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
-| `api/` | Exposes the orchestrator over HTTP. | FastAPI. |
+| `api/` | Exposes the orchestrator over HTTP. | FastAPI, one route: `GET /suggestions`. Pydantic response models (`SuggestionResponse` etc., in `api/main.py`) decouple the wire format from the internal dataclasses via `model_validate(..., from_attributes=True)`, so the JSON shape doesn't silently change if `Gap`/`Event`/`RankedEvent` do. Returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
 | Persistence | Stores cached events, the interest profile, feedback. | SQLite first; introduced once there is real data to store, not needed for the first working end-to-end version. |
 
 ## Key architectural decisions
@@ -90,8 +94,14 @@ together.
    genuinely great match may never reach that number. `rank_events()`
    already only sorts, it doesn't filter by a threshold, which turns out
    to be the right call for this reason.
-4. **Web framework**: FastAPI — typed, low-boilerplate, built-in docs,
-   async-friendly for outbound calls to the event source API.
+4. **Web framework**: FastAPI — typed, low-boilerplate, built-in docs.
+   Route handlers are plain sync `def`, not `async def`: this decision was
+   originally written down as "async-friendly for outbound calls", but
+   when Phase 6 actually got built, every underlying call
+   (`google-api-python-client`, `requests`, `sentence-transformers`) turned
+   out to be fully synchronous with no async variant available — so
+   `async def` would just add a layer that buys nothing. FastAPI already
+   runs sync routes in a threadpool, which is plenty for a single-user app.
 5. **Storage**: SQLite for the MVP; migration to Postgres deferred to the
    deployment phase.
 6. **Event search geolocation**: `latlong` + `radius` query params on the
@@ -114,7 +124,7 @@ together.
 | 3 | Profile Module | Done |
 | 4 | ML Ranking Module (TinyBERT embeddings) | Done |
 | 5 | Orchestrator | Done |
-| 6 | API Layer (FastAPI) | Not started |
+| 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Not started — `docs/er_diagram.mermaid` gets its first real content here, once the actual tables (profile, cached events, feedback) are designed |
 | 8 | Minimal UI | Not started — format tbd |
 | 9 | Deployment (Docker + hosting, public URL) | Not started |
