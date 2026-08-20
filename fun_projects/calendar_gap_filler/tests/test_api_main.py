@@ -9,6 +9,7 @@ tests/test_profile.py) instead of reaching for a mocking library.
 
 from datetime import datetime, timezone
 
+import pytest
 from fastapi.testclient import TestClient
 
 from api.main import _to_response, app
@@ -38,6 +39,21 @@ def _make_event(id_: str = "1", **overrides) -> Event:
     )
     fields.update(overrides)
     return Event(**fields)
+
+
+@pytest.fixture
+def token_file_present(monkeypatch, tmp_path):
+    """Points GOOGLE_TOKEN_FILE at a tmp file that exists, so the
+    missing-token guard in get_suggestions() doesn't short-circuit tests
+    that are about what happens *after* that guard passes. Without this,
+    those tests would depend on whether a real token.json happens to sit
+    in whatever directory pytest is run from — exactly the kind of ambient
+    state tests/test_profile.py already avoids by using tmp_path instead of
+    the real profile.json.
+    """
+    token_file = tmp_path / "token.json"
+    token_file.write_text("{}")
+    monkeypatch.setattr("api.main.GOOGLE_TOKEN_FILE", str(token_file))
 
 
 # --- _to_response ---------------------------------------------------------------
@@ -88,7 +104,7 @@ def test_to_response_empty_suggestions_for_gap_with_no_matches():
 # --- GET /suggestions -------------------------------------------------------------
 
 
-def test_get_suggestions_returns_expected_shape(monkeypatch):
+def test_get_suggestions_returns_expected_shape(monkeypatch, token_file_present):
     gap = _make_gap(18, 21)
     event = _make_event("1")
     monkeypatch.setattr("api.main.suggest_events", lambda: [(gap, [RankedEvent(event=event, score=0.5)])])
@@ -103,7 +119,7 @@ def test_get_suggestions_returns_expected_shape(monkeypatch):
     assert body[0]["suggestions"][0]["score"] == 0.5
 
 
-def test_get_suggestions_empty_list_when_no_gaps(monkeypatch):
+def test_get_suggestions_empty_list_when_no_gaps(monkeypatch, token_file_present):
     monkeypatch.setattr("api.main.suggest_events", lambda: [])
 
     response = client.get("/suggestions")
@@ -112,7 +128,7 @@ def test_get_suggestions_empty_list_when_no_gaps(monkeypatch):
     assert response.json() == []
 
 
-def test_get_suggestions_returns_503_when_orchestrator_raises_runtime_error(monkeypatch):
+def test_get_suggestions_returns_503_when_orchestrator_raises_runtime_error(monkeypatch, token_file_present):
     def _raise():
         raise RuntimeError("USER_LATITUDE and USER_LONGITUDE are not set.")
 
@@ -122,3 +138,17 @@ def test_get_suggestions_returns_503_when_orchestrator_raises_runtime_error(monk
 
     assert response.status_code == 503
     assert "USER_LATITUDE" in response.json()["detail"]
+
+
+def test_get_suggestions_returns_503_when_token_file_missing(monkeypatch, tmp_path):
+    monkeypatch.setattr("api.main.GOOGLE_TOKEN_FILE", str(tmp_path / "token.json"))  # deliberately never created
+
+    def _fail_if_called():
+        raise AssertionError("suggest_events should not be called when token.json is missing")
+
+    monkeypatch.setattr("api.main.suggest_events", _fail_if_called)
+
+    response = client.get("/suggestions")
+
+    assert response.status_code == 503
+    assert "token.json" in response.json()["detail"]

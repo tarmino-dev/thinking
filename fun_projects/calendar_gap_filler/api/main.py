@@ -9,6 +9,7 @@ Run locally with:
     uvicorn api.main:app --reload
 """
 
+import os
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
@@ -16,6 +17,7 @@ from pydantic import BaseModel, ConfigDict
 
 from calendar_module.gaps import Gap
 from classifier_module.ranking import RankedEvent
+from config import GOOGLE_TOKEN_FILE
 from core import suggest_events
 
 app = FastAPI(title="Calendar Gap Filler")
@@ -86,6 +88,23 @@ def get_suggestions() -> list[SuggestionResponse]:
     suggestions for each — the same pipeline as scripts/check_suggestions.py,
     over HTTP instead of the terminal.
     """
+    if not os.path.exists(GOOGLE_TOKEN_FILE):
+        # Without a cached token, calendar_module.client would try to open
+        # an interactive browser OAuth flow right here, inside the request
+        # handler — fine for a CLI script run by hand, but it would just
+        # hang an HTTP client waiting for someone to click through a login
+        # screen on this machine. Fail fast instead: token.json only gets
+        # created by completing that flow once via a CLI entry point (see
+        # README), which is a one-time setup step, not something the API
+        # should ever attempt on a caller's behalf.
+        raise HTTPException(
+            status_code=503,
+            detail=(
+                f"Google Calendar isn't authenticated yet ({GOOGLE_TOKEN_FILE} not found). "
+                "Run any script in scripts/ once locally to complete the browser login, then retry."
+            ),
+        )
+
     try:
         suggestions = suggest_events()
     except RuntimeError as error:

@@ -53,7 +53,17 @@ together.
    `RuntimeError` when this happens rather than the raw Google error.
    Switching to "Production" status would remove this, at the cost of
    going through Google's app verification — not worth it for a
-   single-user personal tool.
+   single-user personal tool. Separate hard-won fact, found while building
+   the API layer (Phase 6): `calendar_module.client._load_credentials()`
+   only raises `RuntimeError` for an *expired* token — if `token.json` is
+   missing entirely, it instead opens an interactive browser OAuth flow
+   and blocks until someone logs in. That's the intended first-run
+   experience for the CLI scripts, but inside an HTTP request handler it
+   would just hang the caller with no response at all. Rather than change
+   `calendar_module.client`'s CLI-friendly behavior, `api/main.py` checks
+   `GOOGLE_TOKEN_FILE` exists *before* calling into the orchestrator and
+   returns a normal `HTTPException(503)` if not — the interactive flow
+   still only ever runs from a CLI script, never from the API.
 2. **Event source**: Ticketmaster Discovery API (free tier, purpose-built for
    event discovery) over Eventbrite (organizer/ticketing focused, not
    discovery focused) and scraping (fragile, legally murky, unnecessary
