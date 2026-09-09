@@ -39,7 +39,7 @@ together.
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
 | `api/` | Exposes the orchestrator over HTTP. | FastAPI, one route: `GET /suggestions`. Pydantic response models (`SuggestionResponse` etc., in `api/main.py`) decouple the wire format from the internal dataclasses via `model_validate(..., from_attributes=True)`, so the JSON shape doesn't silently change if `Gap`/`Event`/`RankedEvent` do. Returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
-| Persistence | Stores cached events, the interest profile, feedback. | SQLite first; introduced once there is real data to store, not needed for the first working end-to-end version. |
+| `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. |
 
 ## Key architectural decisions
 
@@ -114,6 +114,24 @@ together.
    `radius` must be sent as an integer (error `DIS1014` otherwise) even
    though Ticketmaster's own docs list it as a generic String —
    `events_module.client.search_events` rounds it before sending.
+7. **Persistence scope (Phase 7)**: only user feedback (like/dislike on a
+   suggested event) gets a database table for now — not the interest
+   profile, not a cache of fetched events, despite both being mentioned in
+   earlier roadmap notes. Neither `profile.json` nor the live per-request
+   Ticketmaster fetch has shown an actual limitation (personal single-user
+   app, occasional requests, well within Ticketmaster's free-tier rate
+   limit) — moving either into SQLite now would be a refactor without a
+   driving need. Feedback is different: there is currently no way to
+   record it at all, and it's a hard prerequisite for the feedback loop
+   already planned for Phase 10. Storage is plain stdlib `sqlite3` — no
+   ORM, one table, one write path. No read endpoint yet either
+   (`GET /feedback` is deferred until Phase 10 or a UI actually needs to
+   read it back; the `sqlite3` CLI is enough to verify it during
+   development). Each row denormalizes a snapshot of the event (`event_id`,
+   `event_name`, `event_start`, and the ranking `score` at the time it was
+   shown) instead of storing only `event_id`, because no event cache
+   exists — without the snapshot, a liked event could become unrecoverable
+   the moment Ticketmaster stops returning it.
 
 ## Roadmap (high level)
 
