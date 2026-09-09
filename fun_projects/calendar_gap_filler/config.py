@@ -44,3 +44,7 @@ PROFILE_FILE = "profile.json"
 # TinyBERT checkpoint used for ranking events against the interest profile.
 # Downloaded from the Hugging Face Hub and cached locally on first use.
 TINYBERT_MODEL_NAME = "sentence-transformers/paraphrase-TinyBERT-L6-v2"
+
+# SQLite database file for user feedback (like/dislike on suggested events).
+# Gitignored — it's local user data, same reasoning as profile.json.
+FEEDBACK_DB_FILE = "feedback.db"
