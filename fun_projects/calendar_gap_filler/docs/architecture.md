@@ -8,22 +8,23 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Phases 1-6 are all complete: Calendar Module, Event Source Module, Profile
+Phases 1-7 are all complete: Calendar Module, Event Source Module, Profile
 Module, ML Ranking Module, the Orchestrator (`core.py`) that wires all
-four together into one real pipeline, and the API Layer (`api/main.py`)
-that exposes it over HTTP — `suggest_events()` loads the profile, finds
-this week's calendar gaps, fetches nearby events once, embeds everything
-once via TinyBERT, and returns each gap paired with its top-ranked event
-suggestions; `GET /suggestions` wraps that same pipeline as JSON, with a
-`503` instead of a hang or a crash when the app isn't configured or
-authenticated yet. Every module is covered by unit tests and has been
+four together into one real pipeline, the API Layer (`api/main.py`), and
+`feedback_module/` for storing user feedback — `suggest_events()` loads
+the profile, finds this week's calendar gaps, fetches nearby events once,
+embeds everything once via TinyBERT, and returns each gap paired with its
+top-ranked event suggestions; `GET /suggestions` wraps that same pipeline
+as JSON, with a `503` instead of a hang or a crash when the app isn't
+configured or authenticated yet; `POST /feedback` records a like/dislike
+on a suggested event into a local SQLite database (see decision #7 for
+why only feedback is persisted for now, not the profile or a cache of
+fetched events). Every module is covered by unit tests and has been
 verified end-to-end against real data (`scripts/check_suggestions.py` for
-the pipeline, `uvicorn api.main:app` + curl/Swagger for the API). Persistence
-(Phase 7) is next — the first phase to introduce a database, once there's
-an actual reason to store something (cached events, feedback) instead of
-recomputing it per request. This document describes the target
-architecture the code is growing into, module by module, per the roadmap
-below, and is updated as each module is actually built.
+the pipeline, `uvicorn api.main:app` + curl/Swagger for both API
+endpoints). Minimal UI (Phase 8) is next. This document describes the
+target architecture the code is growing into, module by module, per the
+roadmap below, and is updated as each module is actually built.
 
 ## Modules (planned)
 
@@ -38,8 +39,8 @@ together.
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
-| `api/` | Exposes the orchestrator over HTTP. | FastAPI, one route: `GET /suggestions`. Pydantic response models (`SuggestionResponse` etc., in `api/main.py`) decouple the wire format from the internal dataclasses via `model_validate(..., from_attributes=True)`, so the JSON shape doesn't silently change if `Gap`/`Event`/`RankedEvent` do. Returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
-| `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. |
+| `api/` | Exposes the orchestrator over HTTP, and accepts feedback on suggestions. | FastAPI, two routes: `GET /suggestions` and `POST /feedback`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
+| `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM — `init_db()` creates the table if missing, `record_feedback()` writes one denormalized row (event snapshot + ranking score + like/dislike) and returns its id. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. Write-only for now, no `GET /feedback` (same decision) — inspect with the `sqlite3` CLI during development. |
 
 ## Key architectural decisions
 
@@ -143,7 +144,7 @@ together.
 | 4 | ML Ranking Module (TinyBERT embeddings) | Done |
 | 5 | Orchestrator | Done |
 | 6 | API Layer (FastAPI) | Done |
-| 7 | Persistence (SQLite) | Not started — `docs/er_diagram.mermaid` gets its first real content here, once the actual tables (profile, cached events, feedback) are designed |
+| 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Not started — format tbd |
 | 9 | Deployment (Docker + hosting, public URL) | Not started |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |

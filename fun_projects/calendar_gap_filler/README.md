@@ -105,5 +105,31 @@ Pipe through `python3 -m json.tool` for pretty-printed output:
 curl -s http://127.0.0.1:8000/suggestions | python3 -m json.tool
 ```
 
-Returns a JSON array of `{"gap": {...}, "suggestions": [...]}` objects. Interactive
-API docs (Swagger UI) are auto-generated at `http://127.0.0.1:8000/docs`.
+Returns a JSON array of `{"gap": {...}, "suggestions": [...]}` objects.
+
+Send feedback (like/dislike) on a suggested event — reuse the `event_id`, `event_name`,
+`event_start`, and `score` you got back from `/suggestions`:
+
+```bash
+curl -i -X POST http://127.0.0.1:8000/feedback \
+  -H "Content-Type: application/json" \
+  -d '{
+    "event_id": "vvG1zZb9AvsNAv",
+    "event_name": "Jazz Night",
+    "event_start": "2026-08-20T19:00:00+00:00",
+    "score": 0.27,
+    "liked": true
+  }'
+```
+
+Returns `201 Created` with the new row's id, e.g. `{"id": 1}`. `event_start` must include a
+timezone offset and `score` must be between `-1` and `1` — either violation returns `422`
+instead. Feedback is stored in `feedback.db` (SQLite, gitignored); there's no read endpoint
+yet, so inspect it directly if needed:
+
+```bash
+sqlite3 -header -column feedback.db "SELECT * FROM feedback;"
+```
+
+Interactive API docs (Swagger UI) covering both endpoints are auto-generated at
+`http://127.0.0.1:8000/docs`.
