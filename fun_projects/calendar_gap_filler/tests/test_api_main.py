@@ -152,3 +152,92 @@ def test_get_suggestions_returns_503_when_token_file_missing(monkeypatch, tmp_pa
 
     assert response.status_code == 503
     assert "token.json" in response.json()["detail"]
+
+
+# --- POST /feedback ---------------------------------------------------------------
+
+
+def _valid_feedback_payload(**overrides) -> dict:
+    payload = dict(
+        event_id="evt-1",
+        event_name="Jazz Night",
+        event_start="2026-08-20T19:00:00+00:00",
+        score=0.27,
+        liked=True,
+    )
+    payload.update(overrides)
+    return payload
+
+
+def _fail_if_called(**kwargs):
+    raise AssertionError("record_feedback should not be called when the request is invalid")
+
+
+def test_post_feedback_returns_201_with_id(monkeypatch):
+    captured = {}
+
+    def _fake_record_feedback(**kwargs):
+        captured.update(kwargs)
+        return 7
+
+    monkeypatch.setattr("api.main.record_feedback", _fake_record_feedback)
+
+    response = client.post("/feedback", json=_valid_feedback_payload())
+
+    assert response.status_code == 201
+    assert response.json() == {"id": 7}
+    # Also proves the request body was actually parsed into the right
+    # Python types (e.g. the JSON string became a real datetime, "true"
+    # became True), not just forwarded to record_feedback as raw JSON.
+    assert captured == {
+        "event_id": "evt-1",
+        "event_name": "Jazz Night",
+        "event_start": datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+        "score": 0.27,
+        "liked": True,
+    }
+
+
+def test_post_feedback_naive_event_start_returns_422(monkeypatch):
+    monkeypatch.setattr("api.main.record_feedback", _fail_if_called)
+
+    response = client.post("/feedback", json=_valid_feedback_payload(event_start="2026-08-20T19:00:00"))
+
+    assert response.status_code == 422
+
+
+def test_post_feedback_score_above_range_returns_422(monkeypatch):
+    monkeypatch.setattr("api.main.record_feedback", _fail_if_called)
+
+    response = client.post("/feedback", json=_valid_feedback_payload(score=1.5))
+
+    assert response.status_code == 422
+
+
+def test_post_feedback_score_below_range_returns_422(monkeypatch):
+    monkeypatch.setattr("api.main.record_feedback", _fail_if_called)
+
+    response = client.post("/feedback", json=_valid_feedback_payload(score=-1.5))
+
+    assert response.status_code == 422
+
+
+def test_post_feedback_score_boundary_values_are_valid(monkeypatch):
+    # ge=-1.0/le=1.0 means the boundary itself must be accepted, not just
+    # values safely inside it — this is exactly the kind of off-by-one
+    # (ge vs gt) that "clearly out of range" tests alone wouldn't catch.
+    monkeypatch.setattr("api.main.record_feedback", lambda **kwargs: 1)
+
+    assert client.post("/feedback", json=_valid_feedback_payload(score=-1.0)).status_code == 201
+    assert client.post("/feedback", json=_valid_feedback_payload(score=1.0)).status_code == 201
+
+
+def test_post_feedback_missing_required_field_returns_422(monkeypatch):
+    monkeypatch.setattr("api.main.record_feedback", _fail_if_called)
+
+    payload = _valid_feedback_payload()
+    del payload["liked"]
+
+    response = client.post("/feedback", json=payload)
+
+    assert response.status_code == 422
