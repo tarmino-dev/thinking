@@ -13,12 +13,13 @@ import os
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, ConfigDict
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from calendar_module.gaps import Gap
 from classifier_module.ranking import RankedEvent
 from config import GOOGLE_TOKEN_FILE
 from core import suggest_events
+from feedback_module.store import record_feedback
 
 app = FastAPI(title="Calendar Gap Filler")
 
@@ -116,3 +117,57 @@ def get_suggestions() -> list[SuggestionResponse]:
         raise HTTPException(status_code=503, detail=str(error)) from error
 
     return [_to_response(gap, ranked) for gap, ranked in suggestions]
+
+
+class FeedbackRequest(BaseModel):
+    """Request body for POST /feedback: a snapshot of a suggested event
+    (as the client received it from GET /suggestions) plus whether the
+    user liked it. Mirrors feedback_module.store.record_feedback()'s
+    parameters — see that function and architecture.md decision #7 for
+    why a full snapshot is stored instead of just event_id.
+    """
+
+    event_id: str
+    event_name: str
+    event_start: datetime
+    # Cosine similarity (classifier_module.ranking) is mathematically
+    # bounded to [-1, 1] — this isn't an arbitrary business rule, it's a
+    # real property of the value, so it's enforced here rather than left
+    # for record_feedback() to silently accept anything.
+    score: float = Field(ge=-1.0, le=1.0)
+    liked: bool
+
+    @field_validator("event_start")
+    @classmethod
+    def _event_start_must_be_timezone_aware(cls, value: datetime) -> datetime:
+        # Same requirement as everywhere else in this app (calendar_module,
+        # events_module, feedback_module.store) — enforced here, at the
+        # request boundary, so a bad request fails with a clear 422 instead
+        # of reaching record_feedback()'s own check and raising a raw
+        # ValueError that FastAPI would turn into an opaque 500.
+        if value.tzinfo is None:
+            raise ValueError("event_start must be timezone-aware")
+        return value
+
+
+class FeedbackCreatedResponse(BaseModel):
+    """Response body for POST /feedback: the id of the newly created row."""
+
+    id: int
+
+
+@app.post("/feedback", response_model=FeedbackCreatedResponse, status_code=201)
+def post_feedback(feedback: FeedbackRequest) -> FeedbackCreatedResponse:
+    """Record whether the user liked a suggested event.
+
+    Expected to be called after GET /suggestions, with the client sending
+    back the same event snapshot and score it received plus a like/dislike.
+    """
+    feedback_id = record_feedback(
+        event_id=feedback.event_id,
+        event_name=feedback.event_name,
+        event_start=feedback.event_start,
+        score=feedback.score,
+        liked=feedback.liked,
+    )
+    return FeedbackCreatedResponse(id=feedback_id)
