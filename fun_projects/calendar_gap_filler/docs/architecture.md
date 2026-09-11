@@ -41,6 +41,7 @@ together.
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
 | `api/` | Exposes the orchestrator over HTTP, and accepts feedback on suggestions. | FastAPI, two routes: `GET /suggestions` and `POST /feedback`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
 | `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM — `init_db()` creates the table if missing, `record_feedback()` writes one denormalized row (event snapshot + ranking score + like/dislike) and returns its id. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. Write-only for now, no `GET /feedback` (same decision) — inspect with the `sqlite3` CLI during development. |
+| `ui/` | A single-page UI for viewing this week's suggestions and giving feedback. | Static `index.html` (no build step), served by `api/main.py` via `StaticFiles` at `/ui`. Talks to `GET /suggestions` and `POST /feedback` via `fetch()` — no server-side rendering, no new dependency. See decision #8. |
 
 ## Key architectural decisions
 
@@ -133,6 +134,23 @@ together.
    shown) instead of storing only `event_id`, because no event cache
    exists — without the snapshot, a liked event could become unrecoverable
    the moment Ticketmaster stops returning it.
+8. **Minimal UI format (Phase 8)**: a static `ui/index.html` (inline
+   CSS/JS, no build step) that calls the existing `GET /suggestions` and
+   `POST /feedback` via `fetch()`, served by the same FastAPI app through
+   `StaticFiles` (bundled with Starlette, a `fastapi` dependency already —
+   no new package) mounted at `/ui`. Chosen over server-rendered HTML
+   (would need Jinja2 as a new dependency and would mix HTML-rendering
+   into `api/main.py`, which is deliberately JSON-only per its own
+   docstring) and over an interactive CLI (would bypass the HTTP API that
+   Phase 6 was specifically built to expose instead of only being
+   runnable as a local script). Serving the page from the same origin as
+   the API means zero CORS configuration. Feedback buttons call
+   `POST /feedback` via `fetch()` rather than a plain HTML form, because
+   that endpoint returns JSON, not a redirect a form submission could
+   navigate to. This phase does not add `GET /feedback` or a
+   feedback-history view — decision #7's reasoning for deferring it still
+   holds; the UI only needs to show the current week's suggestions and
+   let the user react to them, not review past reactions.
 
 ## Roadmap (high level)
 
@@ -145,7 +163,7 @@ together.
 | 5 | Orchestrator | Done |
 | 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
-| 8 | Minimal UI | Not started — format tbd |
+| 8 | Minimal UI | Not started — format decided (static `ui/index.html` + `StaticFiles`, see decision #8) |
 | 9 | Deployment (Docker + hosting, public URL) | Not started |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |
 
