@@ -8,21 +8,24 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Phases 1-7 are all complete: Calendar Module, Event Source Module, Profile
+Phases 1-8 are all complete: Calendar Module, Event Source Module, Profile
 Module, ML Ranking Module, the Orchestrator (`core.py`) that wires all
-four together into one real pipeline, the API Layer (`api/main.py`), and
-`feedback_module/` for storing user feedback — `suggest_events()` loads
-the profile, finds this week's calendar gaps, fetches nearby events once,
-embeds everything once via TinyBERT, and returns each gap paired with its
-top-ranked event suggestions; `GET /suggestions` wraps that same pipeline
-as JSON, with a `503` instead of a hang or a crash when the app isn't
-configured or authenticated yet; `POST /feedback` records a like/dislike
-on a suggested event into a local SQLite database (see decision #7 for
-why only feedback is persisted for now, not the profile or a cache of
-fetched events). Every module is covered by unit tests and has been
-verified end-to-end against real data (`scripts/check_suggestions.py` for
-the pipeline, `uvicorn api.main:app` + curl/Swagger for both API
-endpoints). Minimal UI (Phase 8) is next. This document describes the
+four together into one real pipeline, the API Layer (`api/main.py`),
+`feedback_module/` for storing user feedback, and a minimal UI
+(`ui/index.html`) — `suggest_events()` loads the profile, finds this
+week's calendar gaps, fetches nearby events once, embeds everything once
+via TinyBERT, and returns each gap paired with its top-ranked event
+suggestions; `GET /suggestions` wraps that same pipeline as JSON, with a
+`503` instead of a hang or a crash when the app isn't configured or
+authenticated yet; `POST /feedback` records a like/dislike on a suggested
+event into a local SQLite database (see decision #7 for why only feedback
+is persisted for now, not the profile or a cache of fetched events); and
+`GET /ui/` serves a single static page, from the same FastAPI app, that
+calls both of those endpoints so suggestions can be viewed and reacted to
+without curl or Swagger. Every module is covered by unit tests and has
+been verified end-to-end against real data (`scripts/check_suggestions.py`
+for the pipeline, `uvicorn api.main:app` + a browser at `/ui/` for the
+full loop). Deployment (Phase 9) is next. This document describes the
 target architecture the code is growing into, module by module, per the
 roadmap below, and is updated as each module is actually built.
 
@@ -39,9 +42,9 @@ together.
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
 | `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
 | `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
-| `api/` | Exposes the orchestrator over HTTP, and accepts feedback on suggestions. | FastAPI, two routes: `GET /suggestions` and `POST /feedback`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
+| `api/` | Exposes the orchestrator over HTTP, accepts feedback on suggestions, and serves the static UI. | FastAPI, two JSON routes (`GET /suggestions`, `POST /feedback`) plus a `StaticFiles` mount at `/ui` serving `ui/`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
 | `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM — `init_db()` creates the table if missing, `record_feedback()` writes one denormalized row (event snapshot + ranking score + like/dislike) and returns its id. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. Write-only for now, no `GET /feedback` (same decision) — inspect with the `sqlite3` CLI during development. |
-| `ui/` | A single-page UI for viewing this week's suggestions and giving feedback. | Static `index.html` (no build step), served by `api/main.py` via `StaticFiles` at `/ui`. Talks to `GET /suggestions` and `POST /feedback` via `fetch()` — no server-side rendering, no new dependency. See decision #8. |
+| `ui/` | A single-page UI for viewing this week's suggestions and giving feedback. | Static `index.html` (no build step), served by `api/main.py` via `StaticFiles` at `/ui`. Fetches `GET /suggestions` on load (shows a loading state, and the `503` `detail` message directly if the app isn't ready yet); shows gaps with no fitting events too, not just ones with suggestions (matches `scripts/check_suggestions.py`'s convention). Each suggestion's 👍/👎 buttons `fetch POST /feedback` using the event/score already in hand (no extra request) and then disable themselves — `feedback_module.store` has no update path, so re-voting would just add a contradicting row. No server-side rendering, no new dependency. See decision #8. |
 
 ## Key architectural decisions
 
@@ -163,7 +166,7 @@ together.
 | 5 | Orchestrator | Done |
 | 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
-| 8 | Minimal UI | Not started — format decided (static `ui/index.html` + `StaticFiles`, see decision #8) |
+| 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker + hosting, public URL) | Not started |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |
 

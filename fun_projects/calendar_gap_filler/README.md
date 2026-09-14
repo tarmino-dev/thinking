@@ -82,6 +82,10 @@ uvicorn api.main:app --reload
 
 By default it listens on `http://127.0.0.1:8000`.
 
+Open **`http://127.0.0.1:8000/ui/`** in a browser for a simple page that shows this
+week's suggestions and lets you 👍/👎 each one — no curl needed. The rest of this
+section documents the underlying API directly, useful for debugging or scripting.
+
 **First run**: if `token.json` doesn't exist yet, complete the Google login once via
 a CLI script first, e.g.:
 
