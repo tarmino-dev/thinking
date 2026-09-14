@@ -1,18 +1,22 @@
-"""HTTP layer: exposes core.suggest_events() over a single GET endpoint.
+"""HTTP layer: exposes core.suggest_events() and feedback_module.store over
+HTTP, and serves the static UI (ui/index.html) that talks to both.
 
 Deliberately thin — this module's only job is translating between the
-internal orchestrator and the wire format (Pydantic response models + HTTP
-status codes). All real logic still lives in core.py and the modules it
-composes; nothing here should duplicate that.
+internal orchestrator/storage and the wire format (Pydantic response
+models + HTTP status codes) or, for /ui, just handing back static files.
+All real logic still lives in core.py and the modules it composes; nothing
+here should duplicate that.
 
 Run locally with:
     uvicorn api.main:app --reload
+Then open http://127.0.0.1:8000/ui in a browser.
 """
 
 import os
 from datetime import datetime
 
 from fastapi import FastAPI, HTTPException
+from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 from calendar_module.gaps import Gap
@@ -22,6 +26,12 @@ from core import suggest_events
 from feedback_module.store import record_feedback
 
 app = FastAPI(title="Calendar Gap Filler")
+
+# "ui" is relative to the current working directory, same as every path in
+# config.py (token.json, profile.json, feedback.db) — assumes the app is
+# started from the project root, as README.md's "Running the API" section
+# already documents. html=True makes GET /ui/ serve ui/index.html.
+app.mount("/ui", StaticFiles(directory="ui", html=True), name="ui")
 
 
 class EventResponse(BaseModel):
