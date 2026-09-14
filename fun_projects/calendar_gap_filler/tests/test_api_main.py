@@ -1,10 +1,14 @@
 """Unit tests for api.main.
 
 _to_response is tested directly — pure conversion logic, no HTTP involved.
-The /suggestions endpoint is tested through FastAPI's TestClient with
-core.suggest_events monkeypatched, the same way other tests in this project
-stub out the thing they don't want to actually call (see
-tests/test_profile.py) instead of reaching for a mocking library.
+The /suggestions and /feedback endpoints are tested through FastAPI's
+TestClient with core.suggest_events / feedback_module.record_feedback
+monkeypatched, the same way other tests in this project stub out the thing
+they don't want to actually call (see tests/test_profile.py) instead of
+reaching for a mocking library. /ui gets a thin test confirming the
+StaticFiles mount actually serves something — its JS logic isn't tested
+here at all (no JS test runner in this project); that got a one-off manual
+check instead, see Phase 8.2/8.3.
 """
 
 from datetime import datetime, timezone
@@ -241,3 +245,27 @@ def test_post_feedback_missing_required_field_returns_422(monkeypatch):
     response = client.post("/feedback", json=payload)
 
     assert response.status_code == 422
+
+
+# --- GET /ui ----------------------------------------------------------------------
+
+
+def test_get_ui_serves_index_html():
+    # Thin on purpose (Развилка №4, Phase 8): this only confirms the
+    # StaticFiles mount actually serves ui/index.html. The page's JS
+    # (fetch calls, rendering, button behavior) has no test runner in
+    # this project and was checked manually instead.
+    response = client.get("/ui/")
+
+    assert response.status_code == 200
+    assert "text/html" in response.headers["content-type"]
+    assert "Calendar Gap Filler" in response.text
+
+
+def test_get_ui_without_trailing_slash_redirects():
+    # Not our code — Starlette's own Mount behavior — but worth pinning
+    # down since it's exactly the URL someone would type by hand.
+    response = client.get("/ui", follow_redirects=False)
+
+    assert response.status_code == 307
+    assert response.headers["location"].endswith("/ui/")
