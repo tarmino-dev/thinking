@@ -154,6 +154,39 @@ together.
    feedback-history view — decision #7's reasoning for deferring it still
    holds; the UI only needs to show the current week's suggestions and
    let the user react to them, not review past reactions.
+9. **Deployment model reconsidered (Phase 9)**: originally planned as a
+   public, self-service demo — the idea being that a prospective employer
+   could visit a public URL, connect their own Google account, fill in a
+   profile, and see the app work end-to-end. Dropped for two independent
+   reasons, either one sufficient on its own to rule it out:
+   - The OAuth consent screen is in "Testing" status (decision #1), which
+     only allows Google accounts explicitly added as test users to
+     authenticate at all. An anonymous visitor cannot complete the login —
+     not "unlikely to bother", but a hard block from Google itself, no
+     matter how the app is hosted.
+   - Even with full access and Phase 10's feedback loop already built,
+     observing a *learning effect* from a couple of likes/dislikes in one
+     short sitting isn't realistic — a visible shift needs sustained real
+     usage over time, not a two-minute click-through. This has nothing to
+     do with hosting either.
+
+   Revised plan: deploy for genuine personal use. Self-host on the user's
+   own machine via `docker compose` (the app plus a `cloudflared` sidecar
+   for the tunnel), fronted by Cloudflare Access so the real
+   calendar-derived data isn't reachable by a stranger who happens to find
+   the URL. This keeps `calendar_module.client`'s existing OAuth flow
+   completely unchanged — the process still runs on the same machine
+   where the browser login happens, exactly as it does today. A real
+   cloud host (e.g. Fly.io) was considered and rejected for now: it would
+   require solving OAuth for a headless remote machine (uploading
+   `token.json` as a secret and re-uploading it roughly weekly per
+   decision #1's known token-expiry trade-off, or pursuing Google's app
+   verification to remove that expiry) for a benefit — "always on
+   independent of my own machine" — that a single-user personal tool
+   doesn't actually need. For showcasing the project externally (e.g. in
+   a resume), the artifact is the repository itself: a README with
+   screenshots of the real running app, clean code, and the test suite —
+   not a link a stranger can self-serve through.
 
 ## Roadmap (high level)
 
@@ -167,7 +200,7 @@ together.
 | 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
-| 9 | Deployment (Docker + hosting, public URL) | Not started |
+| 9 | Deployment (Docker + self-hosted via Cloudflare Tunnel) + portfolio material | Not started — scope reconsidered, see decision #9 |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |
 
 Each phase is broken into its own commits as it's implemented; the commit
