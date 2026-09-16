@@ -1,0 +1,53 @@
+# Personal deployment (decision #9): the app plus a Cloudflare Tunnel
+# sidecar that exposes it publicly without opening any port on the
+# router. Cloudflare Access (configured in the dashboard, Phase 9.4) sits
+# in front of the tunnel so the real calendar-derived data isn't reachable
+# by a stranger who finds the URL.
+services:
+  app:
+    build: .
+    restart: unless-stopped
+    # TICKETMASTER_API_KEY / USER_LATITUDE / USER_LONGITUDE /
+    # USER_SEARCH_RADIUS_KM — same .env this app already reads locally
+    # (config.py's load_dotenv() becomes a no-op inside the container
+    # since there's no .env file there; env_file supplies the same
+    # variables directly, no code changes needed).
+    env_file: .env
+    volumes:
+      # token.json and feedback.db are written to, not just read (token
+      # refreshes, new feedback rows) — bind-mounted (not baked into the
+      # image) so writes land back on the host and survive container
+      # restarts. profile.json is read-only from the app's side.
+      #
+      # credentials.json is deliberately NOT mounted: it's only used by
+      # calendar_module.client._load_credentials() to start a *new*
+      # interactive browser login, and api/main.py's guard (decision #1)
+      # already returns 503 before calling into the orchestrator at all
+      # when token.json is missing — so that code path is never reached
+      # here. If token.json ever becomes invalid in some way other than
+      # "expired with a refresh_token" (narrow edge case), this would
+      # surface as an unhandled error instead of the InstalledAppFlow
+      # trying to open a browser inside a headless container anyway,
+      # which is not more helpful. Re-run a CLI script locally to
+      # regenerate token.json if that ever happens.
+      - ./token.json:/app/token.json
+      - ./profile.json:/app/profile.json:ro
+      - ./feedback.db:/app/feedback.db
+    # Bound to 127.0.0.1 only — this is for local debugging on this same
+    # machine (curl/browser without going through the tunnel), not a
+    # second public entry point. The only path in from the internet is
+    # meant to be cloudflared -> Cloudflare Access below; publishing this
+    # on all interfaces would open an unprotected way around that.
+    ports:
+      - "127.0.0.1:8000:8000"
+
+  cloudflared:
+    image: cloudflare/cloudflared:latest
+    restart: unless-stopped
+    command: tunnel --no-autoupdate run
+    # TUNNEL_TOKEN: created in the Cloudflare Zero Trust dashboard when
+    # setting up the tunnel (Phase 9.4) and added to .env — never commit
+    # it. cloudflared reads it straight from the environment.
+    env_file: .env
+    depends_on:
+      - app
