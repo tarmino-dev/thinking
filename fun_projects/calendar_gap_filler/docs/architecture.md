@@ -170,23 +170,40 @@ together.
      usage over time, not a two-minute click-through. This has nothing to
      do with hosting either.
 
-   Revised plan: deploy for genuine personal use. Self-host on the user's
-   own machine via `docker compose` (the app plus a `cloudflared` sidecar
-   for the tunnel), fronted by Cloudflare Access so the real
-   calendar-derived data isn't reachable by a stranger who happens to find
-   the URL. This keeps `calendar_module.client`'s existing OAuth flow
-   completely unchanged — the process still runs on the same machine
-   where the browser login happens, exactly as it does today. A real
-   cloud host (e.g. Fly.io) was considered and rejected for now: it would
-   require solving OAuth for a headless remote machine (uploading
-   `token.json` as a secret and re-uploading it roughly weekly per
-   decision #1's known token-expiry trade-off, or pursuing Google's app
-   verification to remove that expiry) for a benefit — "always on
-   independent of my own machine" — that a single-user personal tool
-   doesn't actually need. For showcasing the project externally (e.g. in
-   a resume), the artifact is the repository itself: a README with
-   screenshots of the real running app, clean code, and the test suite —
-   not a link a stranger can self-serve through.
+   Revised plan: deploy for genuine personal use, running via
+   `docker compose` on the user's own machine. This keeps
+   `calendar_module.client`'s existing OAuth flow completely unchanged —
+   the process still runs on the same machine where the browser login
+   happens, exactly as it does today. A real cloud host (e.g. Fly.io) was
+   considered and rejected for now: it would require solving OAuth for a
+   headless remote machine (uploading `token.json` as a secret and
+   re-uploading it roughly weekly per decision #1's known token-expiry
+   trade-off, or pursuing Google's app verification to remove that
+   expiry) for a benefit — "always on independent of my own machine" —
+   that a single-user personal tool doesn't actually need.
+
+   Remote access was considered and dropped, in two rounds. First idea: a
+   `cloudflared` sidecar fronted by Cloudflare Access, giving a real
+   HTTPS URL reachable from any device, gated by login. Ruled out once it
+   became clear a *named* tunnel's Public Hostname — the feature needed
+   for a stable URL with Access in front of it — requires a domain
+   registered on Cloudflare's own DNS; free registrars like Freenom
+   stopped offering free domains in 2024, so this meant buying one
+   (cheap, ~$3-10/year, but still a recurring cost and setup step for one
+   user). Fallback idea: Tailscale, a private VPN mesh, free for personal
+   use, no domain needed — also dropped, since it still requires
+   installing and logging into a client on every device used to reach the
+   app, for a benefit (checking suggestions away from this Mac) that
+   isn't actually needed here.
+
+   Landed on: local-only. The container binds to `127.0.0.1` (see
+   `docker-compose.yml`), so it's reachable only from this same
+   machine — Docker here is purely for a consistent, one-command way to
+   run it, not for exposing it to anything beyond this Mac. For
+   showcasing the project externally (e.g. in a resume), the artifact is
+   the repository itself: a README with screenshots of the real running
+   app, clean code, and the test suite — not a link a stranger can
+   self-serve through.
 
 ## Roadmap (high level)
 
@@ -200,7 +217,7 @@ together.
 | 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
-| 9 | Deployment (Docker + self-hosted via Cloudflare Tunnel) + portfolio material | Not started — scope reconsidered, see decision #9 |
+| 9 | Deployment (Docker, local-only) + portfolio material | Not started — scope reconsidered, see decision #9 |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |
 
 Each phase is broken into its own commits as it's implemented; the commit

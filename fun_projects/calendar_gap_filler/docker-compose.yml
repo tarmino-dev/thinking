@@ -1,8 +1,8 @@
-# Personal deployment (decision #9): the app plus a Cloudflare Tunnel
-# sidecar that exposes it publicly without opening any port on the
-# router. Cloudflare Access (configured in the dashboard, Phase 9.4) sits
-# in front of the tunnel so the real calendar-derived data isn't reachable
-# by a stranger who finds the URL.
+# Personal deployment (decision #9): local-only. This runs the app in a
+# container for a consistent, one-command way to start it — it is not
+# exposed beyond this machine (see the port binding below). No tunnel,
+# no domain, no public URL: the real calendar-derived data never leaves
+# this Mac.
 services:
   app:
     build: .
@@ -33,21 +33,10 @@ services:
       - ./token.json:/app/token.json
       - ./profile.json:/app/profile.json:ro
       - ./feedback.db:/app/feedback.db
-    # Bound to 127.0.0.1 only — this is for local debugging on this same
-    # machine (curl/browser without going through the tunnel), not a
-    # second public entry point. The only path in from the internet is
-    # meant to be cloudflared -> Cloudflare Access below; publishing this
-    # on all interfaces would open an unprotected way around that.
+    # Bound to 127.0.0.1 only, on purpose: this is the entire access
+    # control (decision #9 revised — no tunnel, no VPN, no domain). Only
+    # this same machine can reach the container at all; binding
+    # "0.0.0.0:8000:8000" instead would make it reachable from the whole
+    # local network, which is more than "this Mac only" calls for.
     ports:
       - "127.0.0.1:8000:8000"
-
-  cloudflared:
-    image: cloudflare/cloudflared:latest
-    restart: unless-stopped
-    command: tunnel --no-autoupdate run
-    # TUNNEL_TOKEN: created in the Cloudflare Zero Trust dashboard when
-    # setting up the tunnel (Phase 9.4) and added to .env — never commit
-    # it. cloudflared reads it straight from the environment.
-    env_file: .env
-    depends_on:
-      - app
