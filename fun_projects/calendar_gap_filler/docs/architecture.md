@@ -8,11 +8,12 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Phases 1-8 are all complete: Calendar Module, Event Source Module, Profile
+Phases 1-9 are all complete: Calendar Module, Event Source Module, Profile
 Module, ML Ranking Module, the Orchestrator (`core.py`) that wires all
 four together into one real pipeline, the API Layer (`api/main.py`),
-`feedback_module/` for storing user feedback, and a minimal UI
-(`ui/index.html`) — `suggest_events()` loads the profile, finds this
+`feedback_module/` for storing user feedback, a minimal UI
+(`ui/index.html`), and deployment (Docker, local-only — see decision #9)
+— `suggest_events()` loads the profile, finds this
 week's calendar gaps, fetches nearby events once, embeds everything once
 via TinyBERT, and returns each gap paired with its top-ranked event
 suggestions; `GET /suggestions` wraps that same pipeline as JSON, with a
@@ -25,7 +26,8 @@ calls both of those endpoints so suggestions can be viewed and reacted to
 without curl or Swagger. Every module is covered by unit tests and has
 been verified end-to-end against real data (`scripts/check_suggestions.py`
 for the pipeline, `uvicorn api.main:app` + a browser at `/ui/` for the
-full loop). Deployment (Phase 9) is next. This document describes the
+full loop, and `docker compose up --build` for the deployed path). Hardening
+(Phase 10) is next. This document describes the
 target architecture the code is growing into, module by module, per the
 roadmap below, and is updated as each module is actually built.
 
