@@ -4,6 +4,17 @@ An AI-powered scheduling assistant that finds empty slots in your calendar and
 fills them with personalized, locally relevant events based on your interests
 and real-time availability.
 
+## Screenshots
+
+**Suggestions UI** — this week's gaps filled with locally relevant events; feedback
+(👍/👎) is saved per suggestion:
+
+![Suggestions UI](docs/screenshots/ui-suggestions.png)
+
+**API docs** — auto-generated OpenAPI/Swagger UI at `/docs`:
+
+![API docs](docs/screenshots/api-docs.png)
+
 ## Setup
 
 ### 1. Install dependencies

@@ -217,7 +217,7 @@ together.
 | 6 | API Layer (FastAPI) | Done |
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
-| 9 | Deployment (Docker, local-only) + portfolio material | Not started — scope reconsidered, see decision #9 |
+| 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
 | 10 | Hardening (error handling, logging, feedback loop) | Not started |
 
 Each phase is broken into its own commits as it's implemented; the commit
