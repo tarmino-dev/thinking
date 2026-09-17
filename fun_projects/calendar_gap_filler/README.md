@@ -73,14 +73,22 @@ first run needs an internet connection; later runs work offline.
 
 ## Running the API
 
-Once setup above is done, start the server from the project root:
+Once setup above is done, start the server from the project root — either
+directly with `uvicorn`, or via Docker:
 
 ```bash
 source venv/bin/activate
 uvicorn api.main:app --reload
 ```
 
-By default it listens on `http://127.0.0.1:8000`.
+```bash
+docker compose up --build
+```
+
+Either way it listens on `http://127.0.0.1:8000` — the Docker path binds the
+container's port to `127.0.0.1` only (see `docker-compose.yml`), so by design
+it's reachable from this machine alone, not the local network or the internet.
+Stop it with `docker compose down`.
 
 Open **`http://127.0.0.1:8000/ui/`** in a browser for a simple page that shows this
 week's suggestions and lets you 👍/👎 each one — no curl needed. The rest of this
@@ -95,7 +103,10 @@ PYTHONPATH=. python3 scripts/check_suggestions.py
 
 The API deliberately does *not* try to open the interactive browser login itself
 (see step 2.6 above) — it returns a `503` if `token.json` is missing instead of
-hanging the request while waiting for someone to log in.
+hanging the request while waiting for someone to log in. This means the first run
+always has to go through the `uvicorn` path above (or the script directly) — the
+Docker path only works once `token.json` already exists, since nothing inside the
+container can open a browser for you.
 
 Fetch this week's gaps and suggestions:
 
