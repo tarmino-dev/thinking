@@ -5,6 +5,7 @@ common Event shape. This module only searches for events (read-only) — it
 never touches ticket purchasing or account data.
 """
 
+import logging
 from dataclasses import dataclass
 from datetime import datetime, timezone
 
@@ -13,6 +14,8 @@ import requests
 from config import TICKETMASTER_API_KEY
 
 DISCOVERY_API_URL = "https://app.ticketmaster.com/discovery/v2/events.json"
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -80,11 +83,16 @@ def search_events(
         # a bug here. Re-raised as RuntimeError so api/main.py's existing
         # "not available" handling (503, see calendar_module.client's
         # RefreshError case for the same pattern) covers this too, instead
-        # of leaking a raw requests traceback as an unhandled 500.
+        # of leaking a raw requests traceback as an unhandled 500. Logged
+        # here too so the failure is visible server-side even if nobody is
+        # looking at the HTTP response right now.
+        logger.error("Ticketmaster Discovery API request failed: %s", error)
         raise RuntimeError(f"Ticketmaster Discovery API request failed: {error}") from error
 
     raw_events = response.json().get("_embedded", {}).get("events", [])
-    return [_parse_event(raw) for raw in raw_events if _has_specific_start_time(raw)]
+    events = [_parse_event(raw) for raw in raw_events if _has_specific_start_time(raw)]
+    logger.info("Fetched %d event(s) from Ticketmaster", len(events))
+    return events
 
 
 def _format_for_api(moment: datetime) -> str:

@@ -9,10 +9,13 @@ exists anywhere else in the app to look one back up by id later.
 """
 
 import contextlib
+import logging
 import sqlite3
 from datetime import datetime
 
 from config import FEEDBACK_DB_FILE
+
+logger = logging.getLogger(__name__)
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS feedback (
@@ -78,4 +81,5 @@ def record_feedback(
             _INSERT_FEEDBACK,
             (event_id, event_name, event_start.isoformat(), score, int(liked)),
         )
+        logger.info("Recorded feedback: event_id=%s liked=%s score=%.3f", event_id, liked, score)
         return cursor.lastrowid

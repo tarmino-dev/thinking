@@ -1,5 +1,6 @@
 """Project-wide configuration constants."""
 
+import logging
 import os
 
 from dotenv import load_dotenv
@@ -9,6 +10,18 @@ from dotenv import load_dotenv
 # the hosting platform instead — load_dotenv() is a no-op if there's no
 # .env file, so this is safe either way.
 load_dotenv()
+
+# Phase 10 hardening: basic logging setup, done once here rather than in
+# api/main.py, because config.py is the one module every entry point already
+# imports first — both `uvicorn api.main:app` and every script in scripts/.
+# Logging to stdout only (no log file): this is a personal, single-user app
+# run via `uvicorn --reload` or `docker compose up`, and both already put
+# stdout in front of you (docker compose up) or in `docker compose logs` —
+# a log file would need its own volume mount in docker-compose.yml and a
+# rotation policy for a benefit (log history surviving a container restart)
+# nothing here actually needs yet. Doesn't configure uvicorn's own access
+# logging — that already logs every HTTP request by default.
+logging.basicConfig(level=logging.INFO, format="%(asctime)s %(levelname)s %(name)s: %(message)s")
 
 # Google Calendar OAuth files (see README.md for how to obtain these).
 # Both are gitignored — never commit real credentials.

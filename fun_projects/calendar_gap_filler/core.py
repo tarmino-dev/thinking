@@ -7,6 +7,7 @@ end-to-end entry point (suggest_events, which actually talks to Google
 Calendar, Ticketmaster, and TinyBERT).
 """
 
+import logging
 from datetime import datetime, timedelta
 
 from calendar_module.client import get_busy_periods
@@ -16,6 +17,8 @@ from classifier_module.ranking import RankedEvent, event_text, rank_events
 from config import USER_LATITUDE, USER_LONGITUDE, USER_SEARCH_RADIUS_KM
 from events_module.client import Event, search_events
 from profile_module.profile import load_profile
+
+logger = logging.getLogger(__name__)
 
 DAYS_AHEAD = 7
 MAX_SUGGESTIONS_PER_GAP = 3
@@ -39,6 +42,7 @@ def suggest_events(days_ahead: int = DAYS_AHEAD) -> list[tuple[Gap, list[RankedE
             "USER_LATITUDE and USER_LONGITUDE are not set. Add them to .env — see README.md."
         )
 
+    logger.info("Running suggestion pipeline for the next %d day(s)", days_ahead)
     profile = load_profile()
 
     today = datetime.now().astimezone().replace(hour=0, minute=0, second=0, microsecond=0)
@@ -58,6 +62,8 @@ def suggest_events(days_ahead: int = DAYS_AHEAD) -> list[tuple[Gap, list[RankedE
         day_end = day.replace(hour=profile.waking_hours_end)
         gaps.extend(find_gaps(busy_periods, day_start, day_end))
 
+    logger.info("Found %d gap(s) and %d candidate event(s) this week", len(gaps), len(events))
+
     if not events or not gaps:
         return [(gap, []) for gap in gaps]
 
@@ -67,7 +73,10 @@ def suggest_events(days_ahead: int = DAYS_AHEAD) -> list[tuple[Gap, list[RankedE
     event_embeddings = embed_texts([event_text(event) for event in events])
     interest_embeddings = embed_texts(profile.interests)
 
-    return _build_suggestions(gaps, events, event_embeddings, interest_embeddings)
+    suggestions = _build_suggestions(gaps, events, event_embeddings, interest_embeddings)
+    total_suggested = sum(len(ranked) for _, ranked in suggestions)
+    logger.info("Built %d suggestion(s) across %d gap(s)", total_suggested, len(gaps))
+    return suggestions
 
 
 def _build_suggestions(

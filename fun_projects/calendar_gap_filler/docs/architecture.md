@@ -226,6 +226,27 @@ together.
     down to the same thing: retry later, nothing fixable immediately. Keeps
     the change to two `try/except` blocks, no new abstraction.
 
+11. **Hardening: logging (Phase 10, step 2)**: stdlib `logging`, configured
+    once via `logging.basicConfig(...)` in `config.py` — that module is
+    already imported first by both `uvicorn api.main:app` and every script
+    in `scripts/`, so this is the one place a single setup call reaches
+    every entry point. Logs to stdout only, no log file: this is a
+    personal, single-user app run via `uvicorn --reload` or
+    `docker compose up`, and both already surface stdout directly (the
+    terminal, or `docker compose logs`) — a log file would need its own
+    volume mount in `docker-compose.yml` (the container filesystem is
+    ephemeral) and a rotation policy, for a benefit — log history surviving
+    a container restart — nothing here actually needs yet. Doesn't
+    configure `uvicorn`'s own access logging, which already logs every HTTP
+    request by default. Each module gets its own `logger =
+    logging.getLogger(__name__)` (standard practice — output is
+    attributable to the module that produced it) rather than one shared
+    logger. Calls added at real boundaries, not everywhere: pipeline
+    entry/exit in `core.suggest_events()` (gap/event/suggestion counts),
+    the external-API failure paths added in decision #10 plus the
+    pre-existing `RefreshError` case in `calendar_module.client`, and the
+    feedback write in `feedback_module.store.record_feedback()`.
+
 ## Roadmap (high level)
 
 | # | Phase | Status |
@@ -239,7 +260,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | In progress — step 1 (external API error handling) done, see decision #10; logging and the feedback loop are next |
+| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 (error handling, logging) done, see decisions #10-11; the feedback loop is next |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.

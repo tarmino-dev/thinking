@@ -6,6 +6,7 @@ calendar data (scope: calendar.readonly, see config.py) and never modifies
 the calendar.
 """
 
+import logging
 import os
 from dataclasses import dataclass
 from datetime import datetime
@@ -18,6 +19,8 @@ from googleapiclient.discovery import build
 from googleapiclient.errors import HttpError
 
 from config import GOOGLE_CALENDAR_SCOPES, GOOGLE_CREDENTIALS_FILE, GOOGLE_TOKEN_FILE
+
+logger = logging.getLogger(__name__)
 
 
 @dataclass
@@ -64,9 +67,13 @@ def get_busy_periods(date_from: datetime, date_to: datetime) -> list[BusyBlock]:
         # api/main.py already treats any RuntimeError from this module the
         # same way (503, not an unhandled 500), so re-raising as one here
         # reuses that existing handling instead of adding a new exception
-        # type and a new branch just for this.
+        # type and a new branch just for this. Logged here (not just left to
+        # the 503's `detail` text) so the failure is visible in the server's
+        # own logs even if nobody is looking at the HTTP response right now.
+        logger.error("Google Calendar API request failed: %s", error)
         raise RuntimeError(f"Google Calendar API request failed: {error}") from error
 
+    logger.info("Fetched %d busy period(s) from Google Calendar", len(events_result.get("items", [])))
     return [
         BusyBlock(start=_parse_event_time(event["start"]), end=_parse_event_time(event["end"]))
         for event in events_result.get("items", [])
@@ -90,6 +97,7 @@ def _load_credentials() -> Credentials:
                 # in "Testing" status, Google expires refresh tokens after
                 # 7 days no matter how often they're used. Not a bug — just
                 # delete the token file and log in again via the browser.
+                logger.warning("Google refresh token expired: %s", error)
                 raise RuntimeError(
                     f"Google refresh token is no longer valid ({error}). This is expected "
                     f"about once a week while the app is in OAuth 'Testing' mode. Delete "
