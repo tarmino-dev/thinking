@@ -55,23 +55,33 @@ def search_events(
             "add your key — see README.md."
         )
 
-    response = requests.get(
-        DISCOVERY_API_URL,
-        params={
-            "apikey": TICKETMASTER_API_KEY,
-            "latlong": f"{latitude},{longitude}",
-            # Ticketmaster rejects non-integer radius values (error DIS1014:
-            # "must be an integer value between 0 and 19,999"), even though
-            # its own docs list this param as a generic String. round()
-            # rather than int() so e.g. 20.6 becomes 21, not 20.
-            "radius": round(radius_km),
-            "unit": "km",
-            "startDateTime": _format_for_api(date_from),
-            "endDateTime": _format_for_api(date_to),
-        },
-        timeout=10,
-    )
-    response.raise_for_status()
+    try:
+        response = requests.get(
+            DISCOVERY_API_URL,
+            params={
+                "apikey": TICKETMASTER_API_KEY,
+                "latlong": f"{latitude},{longitude}",
+                # Ticketmaster rejects non-integer radius values (error DIS1014:
+                # "must be an integer value between 0 and 19,999"), even though
+                # its own docs list this param as a generic String. round()
+                # rather than int() so e.g. 20.6 becomes 21, not 20.
+                "radius": round(radius_km),
+                "unit": "km",
+                "startDateTime": _format_for_api(date_from),
+                "endDateTime": _format_for_api(date_to),
+            },
+            timeout=10,
+        )
+        response.raise_for_status()
+    except requests.exceptions.RequestException as error:
+        # Covers connection errors, timeouts, and non-2xx responses
+        # (raise_for_status() raises HTTPError, itself a RequestException
+        # subclass) — any case where Ticketmaster itself is the problem, not
+        # a bug here. Re-raised as RuntimeError so api/main.py's existing
+        # "not available" handling (503, see calendar_module.client's
+        # RefreshError case for the same pattern) covers this too, instead
+        # of leaking a raw requests traceback as an unhandled 500.
+        raise RuntimeError(f"Ticketmaster Discovery API request failed: {error}") from error
 
     raw_events = response.json().get("_embedded", {}).get("events", [])
     return [_parse_event(raw) for raw in raw_events if _has_specific_start_time(raw)]

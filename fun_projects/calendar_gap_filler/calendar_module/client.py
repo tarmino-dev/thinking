@@ -15,6 +15,7 @@ from google.auth.transport.requests import Request
 from google.oauth2.credentials import Credentials
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+from googleapiclient.errors import HttpError
 
 from config import GOOGLE_CALENDAR_SCOPES, GOOGLE_CREDENTIALS_FILE, GOOGLE_TOKEN_FILE
 
@@ -44,17 +45,27 @@ def get_busy_periods(date_from: datetime, date_to: datetime) -> list[BusyBlock]:
     credentials = _load_credentials()
     service = build("calendar", "v3", credentials=credentials)
 
-    events_result = (
-        service.events()
-        .list(
-            calendarId="primary",
-            timeMin=date_from.isoformat(),
-            timeMax=date_to.isoformat(),
-            singleEvents=True,
-            orderBy="startTime",
+    try:
+        events_result = (
+            service.events()
+            .list(
+                calendarId="primary",
+                timeMin=date_from.isoformat(),
+                timeMax=date_to.isoformat(),
+                singleEvents=True,
+                orderBy="startTime",
+            )
+            .execute()
         )
-        .execute()
-    )
+    except HttpError as error:
+        # A live failure of the Google Calendar API itself (quota, transient
+        # outage, permission revoked mid-session, ...) — different from the
+        # RefreshError case above (that's "you need to log in again"), but
+        # api/main.py already treats any RuntimeError from this module the
+        # same way (503, not an unhandled 500), so re-raising as one here
+        # reuses that existing handling instead of adding a new exception
+        # type and a new branch just for this.
+        raise RuntimeError(f"Google Calendar API request failed: {error}") from error
 
     return [
         BusyBlock(start=_parse_event_time(event["start"]), end=_parse_event_time(event["end"]))

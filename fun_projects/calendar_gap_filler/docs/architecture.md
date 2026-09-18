@@ -207,6 +207,25 @@ together.
    app, clean code, and the test suite — not a link a stranger can
    self-serve through.
 
+10. **Hardening: external API error handling (Phase 10, step 1)**:
+    `events_module.client.search_events()` and
+    `calendar_module.client.get_busy_periods()` now catch a live failure of
+    the API they call — `requests.exceptions.RequestException` (connection
+    errors, timeouts, non-2xx responses) for Ticketmaster,
+    `googleapiclient.errors.HttpError` for Google Calendar — and re-raise
+    as `RuntimeError`. Before this, only the "not configured yet" cases
+    (missing API key, missing/expired token) were handled; a live outage
+    or rate-limit on either external API propagated as an unhandled
+    exception, and FastAPI turned that into a raw `500` with a traceback
+    instead of the clean `503` every other "can't fulfill this request
+    right now" case already gets. Chose to reuse the existing
+    `RuntimeError` -> `503` path (`api/main.py`'s `except RuntimeError` in
+    `get_suggestions()`) rather than introduce a new exception type or a
+    `502` status for this specific case — from the caller's point of view,
+    "not configured" and "configured but unavailable right now" both boil
+    down to the same thing: retry later, nothing fixable immediately. Keeps
+    the change to two `try/except` blocks, no new abstraction.
+
 ## Roadmap (high level)
 
 | # | Phase | Status |
@@ -220,7 +239,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | Not started |
+| 10 | Hardening (error handling, logging, feedback loop) | In progress — step 1 (external API error handling) done, see decision #10; logging and the feedback loop are next |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.

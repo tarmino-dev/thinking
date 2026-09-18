@@ -9,6 +9,7 @@ responses.
 from datetime import datetime, timezone
 
 import pytest
+import requests
 
 from events_module.client import (
     _format_classification,
@@ -173,6 +174,41 @@ def test_search_events_raises_for_naive_datetime():
 
 def test_search_events_raises_when_api_key_missing(monkeypatch):
     monkeypatch.setattr("events_module.client.TICKETMASTER_API_KEY", None)
+    aware_from = datetime(2026, 8, 10, 9, 0, tzinfo=timezone.utc)
+    aware_to = datetime(2026, 8, 17, 9, 0, tzinfo=timezone.utc)
+
+    with pytest.raises(RuntimeError):
+        search_events(50.45, 30.52, 20, aware_from, aware_to)
+
+
+def test_search_events_raises_runtime_error_on_connection_failure(monkeypatch):
+    # Ticketmaster itself being unreachable (network down, DNS failure, ...)
+    # — Phase 10 hardening: this used to propagate as a raw
+    # requests.exceptions.ConnectionError all the way to api/main.py.
+    monkeypatch.setattr("events_module.client.TICKETMASTER_API_KEY", "fake-key")
+
+    def _raise_connection_error(*args, **kwargs):
+        raise requests.exceptions.ConnectionError("boom")
+
+    monkeypatch.setattr("events_module.client.requests.get", _raise_connection_error)
+    aware_from = datetime(2026, 8, 10, 9, 0, tzinfo=timezone.utc)
+    aware_to = datetime(2026, 8, 17, 9, 0, tzinfo=timezone.utc)
+
+    with pytest.raises(RuntimeError):
+        search_events(50.45, 30.52, 20, aware_from, aware_to)
+
+
+def test_search_events_raises_runtime_error_on_non_2xx_response(monkeypatch):
+    # Ticketmaster reachable but erroring (rate limit, 5xx, ...) —
+    # raise_for_status() raises HTTPError, a RequestException subclass,
+    # which should be caught by the same handling as a connection failure.
+    monkeypatch.setattr("events_module.client.TICKETMASTER_API_KEY", "fake-key")
+
+    class _FailingResponse:
+        def raise_for_status(self):
+            raise requests.exceptions.HTTPError("500 Server Error")
+
+    monkeypatch.setattr("events_module.client.requests.get", lambda *args, **kwargs: _FailingResponse())
     aware_from = datetime(2026, 8, 10, 9, 0, tzinfo=timezone.utc)
     aware_to = datetime(2026, 8, 17, 9, 0, tzinfo=timezone.utc)
 
