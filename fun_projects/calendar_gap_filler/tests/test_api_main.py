@@ -199,7 +199,23 @@ def test_post_feedback_returns_201_with_id(monkeypatch):
         "event_start": datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
         "score": 0.27,
         "liked": True,
+        "classification": None,
     }
+
+
+def test_post_feedback_forwards_classification_when_provided(monkeypatch):
+    captured = {}
+
+    def _fake_record_feedback(**kwargs):
+        captured.update(kwargs)
+        return 7
+
+    monkeypatch.setattr("api.main.record_feedback", _fake_record_feedback)
+
+    response = client.post("/feedback", json=_valid_feedback_payload(classification="Music, Jazz, Vocal Jazz"))
+
+    assert response.status_code == 201
+    assert captured["classification"] == "Music, Jazz, Vocal Jazz"
 
 
 def test_post_feedback_naive_event_start_returns_422(monkeypatch):

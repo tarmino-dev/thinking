@@ -27,6 +27,13 @@ def _fetch_all(db_path: str) -> list[tuple]:
         ).fetchall()
 
 
+def _fetch_all_with_classification(db_path: str) -> list[tuple]:
+    with sqlite3.connect(db_path) as connection:
+        return connection.execute(
+            "SELECT event_id, event_name, event_start, score, liked, classification FROM feedback ORDER BY id"
+        ).fetchall()
+
+
 # --- init_db ----------------------------------------------------------------------
 
 
@@ -135,6 +142,39 @@ def test_record_feedback_raises_for_naive_datetime(tmp_path):
             liked=True,
             db_path=db_path,
         )
+
+
+def test_record_feedback_stores_classification(tmp_path):
+    db_path = _db_path(tmp_path)
+
+    record_feedback(
+        event_id="evt-1",
+        event_name="Jazz Night",
+        event_start=datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+        score=0.27,
+        liked=True,
+        classification="Music, Jazz, Vocal Jazz",
+        db_path=db_path,
+    )
+
+    assert _fetch_all_with_classification(db_path)[0][5] == "Music, Jazz, Vocal Jazz"
+
+
+def test_record_feedback_classification_defaults_to_none(tmp_path):
+    # Older callers (or events with no classification at all — Ticketmaster
+    # doesn't always provide one) shouldn't be forced to supply it.
+    db_path = _db_path(tmp_path)
+
+    record_feedback(
+        event_id="evt-1",
+        event_name="Jazz Night",
+        event_start=datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+        score=0.27,
+        liked=True,
+        db_path=db_path,
+    )
+
+    assert _fetch_all_with_classification(db_path)[0][5] is None
 
 
 def test_record_feedback_naive_datetime_leaves_no_trace(tmp_path):

@@ -127,6 +127,10 @@
             event_start: event.start,
             score: score,
             liked: liked,
+            // Phase 10 step 3 (decision #12): sent along so feedback-based
+            // ranking has a feature to train on later — event already has
+            // this from GET /suggestions, no extra request needed.
+            classification: event.classification,
           }),
         });
 

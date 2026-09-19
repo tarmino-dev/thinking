@@ -247,6 +247,42 @@ together.
     pre-existing `RefreshError` case in `calendar_module.client`, and the
     feedback write in `feedback_module.store.record_feedback()`.
 
+12. **Feedback loop (Phase 10, step 3)**: closes the loop `feedback.db` has
+    been collecting since Phase 7 but never used — the user explicitly
+    wants a real trained model here (not the simpler "boost by matching
+    classification" heuristic that was the initial recommendation) for
+    portfolio value, and accepted the trade-offs: little data so far, a new
+    dependency, added complexity. Design, to keep that choice from becoming
+    overengineering:
+    - **Model**: `scikit-learn`'s `LogisticRegression`, retrained from
+      scratch on every `suggest_events()` call from whatever is currently
+      in `feedback.db` — no persisted model file, no versioning, no
+      separate training pipeline. With feedback likely staying in the tens
+      or low hundreds of rows for a single-user app, retraining takes
+      milliseconds; persistence would be complexity with no payoff.
+    - **Cold start**: below `MIN_FEEDBACK_FOR_MODEL` labeled examples (or
+      without both classes present), the model is skipped entirely and
+      ranking falls back to the existing pure cosine-similarity score —
+      same spirit as decision #3's honesty about cosine-similarity's
+      narrow real-world range: don't trust a model on data too thin to
+      support one.
+    - **Features, kept minimal on purpose**: the existing `cosine_score`
+      (so the content-based signal isn't thrown away, just re-weighted)
+      plus the event's classification *segment* (first component of
+      `Event.classification`, one-hot) — not the full classification
+      string, which is too specific to ever repeat across different real
+      events (e.g. "Arts & Theatre, Cultural, Cultural" vs "Arts & Theatre,
+      Dance, Dance" share a segment but would never match as full strings).
+    - **Step 3.1 (this commit)**: added `classification` to the `feedback`
+      table (the only new column needed — `score` already existed) and
+      threaded it through `record_feedback()`, `FeedbackRequest`
+      (`api/main.py`), and the `POST /feedback` body in `ui/index.html`
+      (the data was already available client-side from `GET /suggestions`,
+      just wasn't being sent back). No migration path needed — the old
+      `feedback.db` held only manual test clicks and was deleted rather
+      than migrated. The model itself (`classifier_module/feedback_model.py`)
+      and wiring it into `core.suggest_events()` are steps 3.2-3.3.
+
 ## Roadmap (high level)
 
 | # | Phase | Status |
@@ -260,7 +296,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 (error handling, logging) done, see decisions #10-11; the feedback loop is next |
+| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) in progress: 3.1 (schema) done, see decision #12; 3.2 (model) and 3.3 (wiring) next |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.

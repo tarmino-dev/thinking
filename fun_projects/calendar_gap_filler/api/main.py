@@ -146,6 +146,11 @@ class FeedbackRequest(BaseModel):
     # for record_feedback() to silently accept anything.
     score: float = Field(ge=-1.0, le=1.0)
     liked: bool
+    # Added in Phase 10 step 3 (decision #12) so classifier_module's
+    # feedback-based ranking has a feature to train on later. Optional
+    # (defaults to None) because events_module.client.Event.classification
+    # itself is often None (Ticketmaster doesn't always provide one).
+    classification: str | None = None
 
     @field_validator("event_start")
     @classmethod
@@ -179,5 +184,6 @@ def post_feedback(feedback: FeedbackRequest) -> FeedbackCreatedResponse:
         event_start=feedback.event_start,
         score=feedback.score,
         liked=feedback.liked,
+        classification=feedback.classification,
     )
     return FeedbackCreatedResponse(id=feedback_id)
