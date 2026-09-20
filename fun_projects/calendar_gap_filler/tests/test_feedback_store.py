@@ -11,7 +11,7 @@ from datetime import datetime, timezone
 
 import pytest
 
-from feedback_module.store import init_db, record_feedback
+from feedback_module.store import FeedbackRow, get_all_feedback, init_db, record_feedback
 
 TZ = timezone.utc
 
@@ -193,3 +193,69 @@ def test_record_feedback_naive_datetime_leaves_no_trace(tmp_path):
         )
 
     assert not os.path.exists(db_path)
+
+
+# --- get_all_feedback --------------------------------------------------------------
+
+
+def test_get_all_feedback_returns_empty_list_when_nothing_recorded(tmp_path):
+    db_path = _db_path(tmp_path)  # file doesn't exist yet
+
+    assert get_all_feedback(db_path) == []
+
+
+def test_get_all_feedback_returns_stored_rows(tmp_path):
+    db_path = _db_path(tmp_path)
+    record_feedback(
+        event_id="evt-1",
+        event_name="Jazz Night",
+        event_start=datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+        score=0.27,
+        liked=True,
+        classification="Music, Jazz, Vocal Jazz",
+        db_path=db_path,
+    )
+    record_feedback(
+        event_id="evt-2",
+        event_name="Golf Championship",
+        event_start=datetime(2026, 8, 21, 10, 0, tzinfo=TZ),
+        score=-0.05,
+        liked=False,
+        classification="Sports, Golf, PGA Tour",
+        db_path=db_path,
+    )
+
+    rows = get_all_feedback(db_path)
+
+    assert rows == [
+        FeedbackRow(
+            event_id="evt-1",
+            event_name="Jazz Night",
+            event_start=datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+            score=0.27,
+            liked=True,
+            classification="Music, Jazz, Vocal Jazz",
+        ),
+        FeedbackRow(
+            event_id="evt-2",
+            event_name="Golf Championship",
+            event_start=datetime(2026, 8, 21, 10, 0, tzinfo=TZ),
+            score=-0.05,
+            liked=False,
+            classification="Sports, Golf, PGA Tour",
+        ),
+    ]
+
+
+def test_get_all_feedback_classification_none_round_trips(tmp_path):
+    db_path = _db_path(tmp_path)
+    record_feedback(
+        event_id="evt-1",
+        event_name="Jazz Night",
+        event_start=datetime(2026, 8, 20, 19, 0, tzinfo=TZ),
+        score=0.27,
+        liked=True,
+        db_path=db_path,
+    )
+
+    assert get_all_feedback(db_path)[0].classification is None

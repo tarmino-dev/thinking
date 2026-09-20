@@ -273,15 +273,32 @@ together.
       string, which is too specific to ever repeat across different real
       events (e.g. "Arts & Theatre, Cultural, Cultural" vs "Arts & Theatre,
       Dance, Dance" share a segment but would never match as full strings).
-    - **Step 3.1 (this commit)**: added `classification` to the `feedback`
-      table (the only new column needed — `score` already existed) and
-      threaded it through `record_feedback()`, `FeedbackRequest`
-      (`api/main.py`), and the `POST /feedback` body in `ui/index.html`
-      (the data was already available client-side from `GET /suggestions`,
-      just wasn't being sent back). No migration path needed — the old
-      `feedback.db` held only manual test clicks and was deleted rather
-      than migrated. The model itself (`classifier_module/feedback_model.py`)
-      and wiring it into `core.suggest_events()` are steps 3.2-3.3.
+    - **Step 3.1**: added `classification` to the `feedback` table (the
+      only new column needed — `score` already existed) and threaded it
+      through `record_feedback()`, `FeedbackRequest` (`api/main.py`), and
+      the `POST /feedback` body in `ui/index.html` (the data was already
+      available client-side from `GET /suggestions`, just wasn't being sent
+      back). No migration path needed — the old `feedback.db` held only
+      manual test clicks and was deleted rather than migrated.
+    - **Step 3.2 (this commit)**: `feedback_module.store` gained
+      `FeedbackRow` + `get_all_feedback()` — an internal read path (still no
+      HTTP `GET /feedback`, decision #7 stands). New module
+      `classifier_module/feedback_model.py`: `train_feedback_model()`
+      returns `None` below `MIN_FEEDBACK_FOR_MODEL` rows or when only one
+      class is represented so far (logistic regression can't fit a
+      boundary from one class); otherwise returns a `FeedbackModel`
+      (the fitted model plus the fixed list of classification segments it
+      was trained on, needed so `predict_score()` builds a feature vector
+      in the same shape for a new event — including one it's never seen a
+      segment for, via an all-zero one-hot block rather than an error).
+      Pure logic, no I/O inside the module itself, so it's fully unit
+      tested (`tests/test_feedback_model.py`) including a real behavioral
+      check (not just "doesn't crash"): trained on synthetic data where
+      "Music" is always liked and "Sports" always disliked, it predicts a
+      higher score for an unseen Music event than an unseen Sports event
+      at the same cosine_score. Wiring this into `core.suggest_events()`
+      (calling it once per run, not once per gap — same reasoning as the
+      existing "embed once, not per gap" pattern) is step 3.3.
 
 ## Roadmap (high level)
 
@@ -296,7 +313,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) in progress: 3.1 (schema) done, see decision #12; 3.2 (model) and 3.3 (wiring) next |
+| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) in progress: 3.1 (schema) and 3.2 (model, `classifier_module/feedback_model.py`) done, see decision #12; 3.3 (wiring into core.py) next |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.

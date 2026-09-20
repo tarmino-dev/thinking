@@ -14,11 +14,27 @@ events_module.client.Event.classification itself can be None.
 import contextlib
 import logging
 import sqlite3
+from dataclasses import dataclass
 from datetime import datetime
 
 from config import FEEDBACK_DB_FILE
 
 logger = logging.getLogger(__name__)
+
+
+@dataclass
+class FeedbackRow:
+    """One stored feedback row, read back for classifier_module's
+    feedback-based ranking (Phase 10 step 3, decision #12) — the only
+    reader so far; there's still no HTTP GET /feedback (decision #7).
+    """
+
+    event_id: str
+    event_name: str
+    event_start: datetime
+    score: float
+    liked: bool
+    classification: str | None
 
 _CREATE_TABLE = """
 CREATE TABLE IF NOT EXISTS feedback (
@@ -93,3 +109,31 @@ def record_feedback(
         )
         logger.info("Recorded feedback: event_id=%s liked=%s score=%.3f", event_id, liked, score)
         return cursor.lastrowid
+
+
+def get_all_feedback(db_path: str = FEEDBACK_DB_FILE) -> list[FeedbackRow]:
+    """Read every stored feedback row.
+
+    Internal use only (classifier_module.feedback_model trains on this) —
+    not exposed over HTTP, see decision #7 for why GET /feedback doesn't
+    exist yet. Calls init_db() first, same reasoning as record_feedback():
+    safe to call before anything has ever been written (returns an empty
+    list instead of failing on a missing table).
+    """
+    init_db(db_path)
+    with contextlib.closing(_connect(db_path)) as connection:
+        rows = connection.execute(
+            "SELECT event_id, event_name, event_start, score, liked, classification FROM feedback"
+        ).fetchall()
+
+    return [
+        FeedbackRow(
+            event_id=row[0],
+            event_name=row[1],
+            event_start=datetime.fromisoformat(row[2]),
+            score=row[3],
+            liked=bool(row[4]),
+            classification=row[5],
+        )
+        for row in rows
+    ]
