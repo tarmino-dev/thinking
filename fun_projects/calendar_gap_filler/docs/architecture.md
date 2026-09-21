@@ -296,9 +296,21 @@ together.
       check (not just "doesn't crash"): trained on synthetic data where
       "Music" is always liked and "Sports" always disliked, it predicts a
       higher score for an unseen Music event than an unseen Sports event
-      at the same cosine_score. Wiring this into `core.suggest_events()`
-      (calling it once per run, not once per gap — same reasoning as the
-      existing "embed once, not per gap" pattern) is step 3.3.
+      at the same cosine_score.
+    - **Step 3.3 (this commit)**: wired into `core.suggest_events()` —
+      `train_feedback_model(get_all_feedback())` runs once per call (same
+      "compute once per run, not once per gap" reasoning as the embeddings
+      above), and `core._build_suggestions()` gained a `feedback_model`
+      parameter threaded down to a new pure helper, `_apply_feedback_model()`,
+      which re-scores an already cosine-ranked list via `predict_score()`
+      and re-sorts — or returns it unchanged when `feedback_model` is
+      `None`. The one correctness property worth calling out explicitly:
+      this re-scoring happens *before* the `max_per_gap` cut, not after —
+      an event the feedback model would rank #1 could otherwise already be
+      discarded for ranking, say, #4 on pure cosine similarity alone.
+      Covered by `tests/test_core.py`, including a test that specifically
+      proves an event can be promoted past a cutoff it wouldn't have
+      survived on cosine similarity alone.
 
 ## Roadmap (high level)
 
@@ -313,7 +325,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) in progress: 3.1 (schema) and 3.2 (model, `classifier_module/feedback_model.py`) done, see decision #12; 3.3 (wiring into core.py) next |
+| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) 3.1-3.3 done, see decision #12 — the model is trained and wired into ranking; 3.4 (manual verification + milestone docs pass) next |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.

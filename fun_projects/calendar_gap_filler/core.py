@@ -13,9 +13,11 @@ from datetime import datetime, timedelta
 from calendar_module.client import get_busy_periods
 from calendar_module.gaps import Gap, find_gaps
 from classifier_module.embeddings import embed_texts
+from classifier_module.feedback_model import FeedbackModel, predict_score, train_feedback_model
 from classifier_module.ranking import RankedEvent, event_text, rank_events
 from config import USER_LATITUDE, USER_LONGITUDE, USER_SEARCH_RADIUS_KM
 from events_module.client import Event, search_events
+from feedback_module.store import get_all_feedback
 from profile_module.profile import load_profile
 
 logger = logging.getLogger(__name__)
@@ -73,7 +75,14 @@ def suggest_events(days_ahead: int = DAYS_AHEAD) -> list[tuple[Gap, list[RankedE
     event_embeddings = embed_texts([event_text(event) for event in events])
     interest_embeddings = embed_texts(profile.interests)
 
-    suggestions = _build_suggestions(gaps, events, event_embeddings, interest_embeddings)
+    # Same "compute once per run, not once per gap" reasoning as the
+    # embeddings above (Phase 10 step 3, decision #12) — trains fresh on
+    # every call from whatever's in feedback.db right now; returns None
+    # (handled by _build_suggestions/_apply_feedback_model) when there
+    # isn't enough feedback yet to trust a model over plain cosine ranking.
+    feedback_model = train_feedback_model(get_all_feedback())
+
+    suggestions = _build_suggestions(gaps, events, event_embeddings, interest_embeddings, feedback_model)
     total_suggested = sum(len(ranked) for _, ranked in suggestions)
     logger.info("Built %d suggestion(s) across %d gap(s)", total_suggested, len(gaps))
     return suggestions
@@ -84,13 +93,15 @@ def _build_suggestions(
     events: list[Event],
     event_embeddings: list[list[float]],
     interest_embeddings: list[list[float]],
+    feedback_model: FeedbackModel | None = None,
     max_per_gap: int = MAX_SUGGESTIONS_PER_GAP,
 ) -> list[tuple[Gap, list[RankedEvent]]]:
     """Pure composition: for each gap, keep only the events that actually
-    fit (by time), rank the survivors against the interest profile, and
-    keep the top few. No I/O — everything needed is passed in already
-    computed, which is what makes this testable without touching any real
-    API or the TinyBERT model.
+    fit (by time), rank the survivors against the interest profile, adjust
+    with the feedback model if one is available, and keep the top few. No
+    I/O — everything needed is passed in already computed, which is what
+    makes this testable without touching any real API, the TinyBERT model,
+    or scikit-learn's training.
     """
     event_embedding_by_id = dict(zip((event.id for event in events), event_embeddings))
 
@@ -104,9 +115,35 @@ def _build_suggestions(
 
         fitting_embeddings = [event_embedding_by_id[event.id] for event in fitting_events]
         ranked = rank_events(fitting_events, fitting_embeddings, interest_embeddings)
+        # Re-score with feedback (if trained) and re-sort *before* cutting
+        # to max_per_gap — otherwise an event the feedback model would
+        # have promoted to #1 could already be discarded for scoring #4
+        # on pure cosine similarity alone.
+        ranked = _apply_feedback_model(ranked, feedback_model)
         suggestions.append((gap, ranked[:max_per_gap]))
 
     return suggestions
+
+
+def _apply_feedback_model(
+    ranked: list[RankedEvent], feedback_model: FeedbackModel | None
+) -> list[RankedEvent]:
+    """Re-score ranked (already sorted by pure cosine similarity) using the
+    feedback-trained model, and re-sort by the new scores.
+
+    Returns ranked unchanged when feedback_model is None — not enough
+    feedback yet to trust one over plain cosine ranking, see
+    classifier_module.feedback_model.MIN_FEEDBACK_FOR_MODEL — so callers
+    don't need an if/else at every call site.
+    """
+    if feedback_model is None:
+        return ranked
+
+    adjusted = [
+        RankedEvent(event=ranked_event.event, score=predict_score(feedback_model, ranked_event.event, ranked_event.score))
+        for ranked_event in ranked
+    ]
+    return sorted(adjusted, key=lambda ranked_event: ranked_event.score, reverse=True)
 
 
 def _fits_in_gap(event: Event, gap: Gap) -> bool:

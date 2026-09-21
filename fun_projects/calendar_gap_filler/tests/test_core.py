@@ -7,8 +7,11 @@ embeddings — no calendar, no Ticketmaster, no TinyBERT.
 from datetime import datetime, timedelta, timezone
 
 from calendar_module.gaps import Gap
-from core import DEFAULT_EVENT_DURATION_MINUTES, _build_suggestions, _fits_in_gap
+from classifier_module.feedback_model import train_feedback_model
+from classifier_module.ranking import RankedEvent
+from core import DEFAULT_EVENT_DURATION_MINUTES, _apply_feedback_model, _build_suggestions, _fits_in_gap
 from events_module.client import Event
+from feedback_module.store import FeedbackRow
 
 TZ = timezone.utc
 
@@ -21,13 +24,20 @@ def _make_gap(day: int, start_hour: int, end_hour: int) -> Gap:
     return Gap(start=_dt(day, start_hour), end=_dt(day, end_hour))
 
 
-def _make_event(id_: str, day: int, hour: int, minute: int = 0, duration_minutes: float | None = 60) -> Event:
+def _make_event(
+    id_: str,
+    day: int,
+    hour: int,
+    minute: int = 0,
+    duration_minutes: float | None = 60,
+    classification: str | None = None,
+) -> Event:
     return Event(
         id=id_,
         name=f"Event {id_}",
         start=_dt(day, hour, minute),
         duration_minutes=duration_minutes,
-        classification=None,
+        classification=classification,
         description=None,
         venue_name=None,
         url=None,
@@ -178,3 +188,70 @@ def test_build_suggestions_no_events_returns_empty_suggestions_per_gap():
     result = _build_suggestions([gap], [], [], interest_embeddings)
 
     assert result == [(gap, [])]
+
+
+# --- _apply_feedback_model ------------------------------------------------------
+
+
+def _ranked(id_: str, score: float, classification: str | None = None) -> RankedEvent:
+    return RankedEvent(event=_make_event(id_, 20, 10, classification=classification), score=score)
+
+
+def _trained_feedback_model():
+    # Same pattern as tests/test_feedback_model.py's _varied_rows(): enough
+    # rows, both classes, and a real learnable pattern (Music liked, Sports
+    # disliked) regardless of the recorded cosine_score.
+    liked_music = [
+        FeedbackRow("m", "Music Event", _dt(1, 19), 0.1 + 0.01 * i, True, "Music, Jazz, Vocal Jazz")
+        for i in range(10)
+    ]
+    disliked_sports = [
+        FeedbackRow("s", "Sports Event", _dt(1, 19), 0.1 + 0.01 * i, False, "Sports, Golf, PGA Tour")
+        for i in range(10)
+    ]
+    return train_feedback_model(liked_music + disliked_sports)
+
+
+def test_apply_feedback_model_returns_unchanged_when_model_is_none():
+    ranked = [_ranked("a", 0.9), _ranked("b", 0.1)]
+
+    result = _apply_feedback_model(ranked, None)
+
+    assert result == ranked
+
+
+def test_apply_feedback_model_rescoves_and_resorts():
+    model = _trained_feedback_model()
+    # Pure cosine similarity ranks the Sports event first — the feedback
+    # model, having learned "Music good, Sports bad", should flip this.
+    ranked = [
+        _ranked("sports_event", 0.9, "Sports, Basketball, NBA"),
+        _ranked("music_event", 0.2, "Music, Rock, Alternative Rock"),
+    ]
+
+    result = _apply_feedback_model(ranked, model)
+
+    assert [r.event.id for r in result] == ["music_event", "sports_event"]
+
+
+def test_build_suggestions_feedback_model_can_promote_an_event_past_max_per_gap_cutoff():
+    # The core correctness property discussed while designing this step:
+    # re-scoring must happen BEFORE the max_per_gap cut, not after —
+    # otherwise an event the feedback model would rank #1 could already be
+    # gone if it only ranked, say, #4 on pure cosine similarity.
+    gap = _make_gap(20, 9, 12)
+    # 3 mediocre-but-not-Music/Sports events that beat the real Music event
+    # on pure cosine similarity, plus the Music event trailing behind them.
+    filler_events = [_make_event(f"filler{i}", 20, 10) for i in range(3)]
+    music_event = _make_event("music_event", 20, 10, classification="Music, Rock, Alternative Rock")
+    events = [*filler_events, music_event]
+    # Fillers score higher (closer to the interest direction) than the
+    # Music event on pure cosine similarity alone.
+    event_embeddings = [[0.9, 0.1]] * 3 + [[0.2, 0.8]]
+    interest_embeddings = [[1, 0]]
+    model = _trained_feedback_model()
+
+    result = _build_suggestions([gap], events, event_embeddings, interest_embeddings, model, max_per_gap=1)
+
+    [(_, ranked)] = result
+    assert [r.event.id for r in ranked] == ["music_event"]
