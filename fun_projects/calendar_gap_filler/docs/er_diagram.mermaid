@@ -16,5 +16,6 @@ erDiagram
         string event_start "ISO 8601 datetime string"
         float score "RankedEvent.score at the moment this event was shown"
         boolean liked "stored as 0/1; true means the user liked the suggestion"
+        string classification "nullable; Event.classification, e.g. 'Music, Jazz, Vocal Jazz' — added Phase 10 step 3 (decision #12) as a feature for the feedback-based ranking model"
         string created_at "ISO 8601 datetime string, set by SQLite's CURRENT_TIMESTAMP"
     }

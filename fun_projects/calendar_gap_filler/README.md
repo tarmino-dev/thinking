@@ -134,7 +134,8 @@ curl -s http://127.0.0.1:8000/suggestions | python3 -m json.tool
 Returns a JSON array of `{"gap": {...}, "suggestions": [...]}` objects.
 
 Send feedback (like/dislike) on a suggested event — reuse the `event_id`, `event_name`,
-`event_start`, and `score` you got back from `/suggestions`:
+`event_start`, `score`, and `classification` you got back from `/suggestions`
+(`classification` is optional — omit it if the event didn't have one):
 
 ```bash
 curl -i -X POST http://127.0.0.1:8000/feedback \
@@ -144,14 +145,16 @@ curl -i -X POST http://127.0.0.1:8000/feedback \
     "event_name": "Jazz Night",
     "event_start": "2026-08-20T19:00:00+00:00",
     "score": 0.27,
-    "liked": true
+    "liked": true,
+    "classification": "Music, Jazz, Vocal Jazz"
   }'
 ```
 
 Returns `201 Created` with the new row's id, e.g. `{"id": 1}`. `event_start` must include a
 timezone offset and `score` must be between `-1` and `1` — either violation returns `422`
-instead. Feedback is stored in `feedback.db` (SQLite, gitignored); there's no read endpoint
-yet, so inspect it directly if needed:
+instead. `classification` feeds a feedback-based ranking model once enough feedback accumulates
+(see `docs/architecture.md` decision #12) — there's still no read endpoint over HTTP, so
+inspect the raw data directly if needed:
 
 ```bash
 sqlite3 -header -column feedback.db "SELECT * FROM feedback;"

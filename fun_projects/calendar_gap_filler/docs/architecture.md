@@ -8,7 +8,7 @@ ranked against the user's interest profile by a lightweight ML model.
 
 ## Current status
 
-Phases 1-9 are all complete: Calendar Module, Event Source Module, Profile
+Phases 1-10 are all complete: Calendar Module, Event Source Module, Profile
 Module, ML Ranking Module, the Orchestrator (`core.py`) that wires all
 four together into one real pipeline, the API Layer (`api/main.py`),
 `feedback_module/` for storing user feedback, a minimal UI
@@ -26,8 +26,14 @@ calls both of those endpoints so suggestions can be viewed and reacted to
 without curl or Swagger. Every module is covered by unit tests and has
 been verified end-to-end against real data (`scripts/check_suggestions.py`
 for the pipeline, `uvicorn api.main:app` + a browser at `/ui/` for the
-full loop, and `docker compose up --build` for the deployed path). Hardening
-(Phase 10) is next. This document describes the
+full loop, and `docker compose up --build` for the deployed path). Phase
+10 (hardening) is also done: external API failures return a clean `503`
+instead of an unhandled `500` (decision #10), basic logging covers the
+pipeline and failure paths (decision #11), and the feedback loop is real —
+`feedback.db` now trains a small `scikit-learn` model that adjusts ranking
+once enough likes/dislikes accumulate, instead of just being collected and
+never used (decision #12, verifiable by hand via
+`scripts/check_feedback_model.py`). This document describes the
 target architecture the code is growing into, module by module, per the
 roadmap below, and is updated as each module is actually built.
 
@@ -42,11 +48,11 @@ together.
 | `calendar_module/` | Reads the user's Google Calendar (read-only) and computes free time slots ("gaps"). | Split into `client.py` (Google Calendar API access) and `gaps.py` (pure gap-finding logic, no I/O, easy to unit test). |
 | `events_module/` | Fetches candidate local events. | Uses the Ticketmaster Discovery API; normalizes results into a common `Event` shape. `Event.duration_minutes` is often `None` — Ticketmaster frequently doesn't provide an event's end time. `Event.start` is converted from Ticketmaster's UTC timestamps to local system time at parse time, so it lines up with `Gap.start`/`Gap.end` (already local) for both comparisons and display — comparisons work regardless, but mixed timezones make printed output confusing. |
 | `profile_module/` | Holds the user's interest profile. | Simple in-memory structure at first; no database yet. |
-| `classifier_module/` | Ranks candidate events against the user's interest profile. | TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. |
-| `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions. | Deliberately not a separate "service layer". |
-| `api/` | Exposes the orchestrator over HTTP, accepts feedback on suggestions, and serves the static UI. | FastAPI, two JSON routes (`GET /suggestions`, `POST /feedback`) plus a `StaticFiles` mount at `/ui` serving `ui/`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
-| `feedback_module/` | Stores user feedback (like/dislike) on suggested events. | SQLite via stdlib `sqlite3`, no ORM — `init_db()` creates the table if missing, `record_feedback()` writes one denormalized row (event snapshot + ranking score + like/dislike) and returns its id. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. Write-only for now, no `GET /feedback` (same decision) — inspect with the `sqlite3` CLI during development. |
-| `ui/` | A single-page UI for viewing this week's suggestions and giving feedback. | Static `index.html` (no build step), served by `api/main.py` via `StaticFiles` at `/ui`. Fetches `GET /suggestions` on load (shows a loading state, and the `503` `detail` message directly if the app isn't ready yet); shows gaps with no fitting events too, not just ones with suggestions (matches `scripts/check_suggestions.py`'s convention). Each suggestion's 👍/👎 buttons `fetch POST /feedback` using the event/score already in hand (no extra request) and then disable themselves — `feedback_module.store` has no update path, so re-voting would just add a contradicting row. No server-side rendering, no new dependency. See decision #8. |
+| `classifier_module/` | Ranks candidate events against the user's interest profile, and (Phase 10 step 3) adjusts that ranking using accumulated feedback. | `ranking.py`: TinyBERT embeddings via `sentence-transformers` (`paraphrase-TinyBERT-L6-v2`), ranked by cosine similarity, filtered by gap duration. `feedback_model.py`: a `scikit-learn` `LogisticRegression`, retrained fresh on every pipeline run from `feedback_module.store.get_all_feedback()`, that re-scores once there's enough labeled data — see decision #12. |
+| `orchestrator` (`core.py`) | Single composition point: gaps -> candidate events -> ranked suggestions, adjusted by the feedback model when one can be trained. | Deliberately not a separate "service layer". Trains the feedback model once per `suggest_events()` call (not once per gap) — same reasoning as embedding events/interests once per call. |
+| `api/` | Exposes the orchestrator over HTTP, accepts feedback on suggestions, and serves the static UI. | FastAPI, two JSON routes (`GET /suggestions`, `POST /feedback`) plus a `StaticFiles` mount at `/ui` serving `ui/`. Pydantic response models (`SuggestionResponse` etc.) decouple the wire format from internal dataclasses via `model_validate(..., from_attributes=True)`; `FeedbackRequest` validates at the request boundary (timezone-aware `event_start`, `score` constrained to `[-1, 1]`, optional `classification` since decision #12) so bad input fails with `422` before ever reaching `feedback_module.store`. `GET /suggestions` returns `503` (not a 500 or a hang) when the app isn't configured or authenticated yet — see decision #1 for the missing-`token.json` case specifically. |
+| `feedback_module/` | Stores user feedback (like/dislike, plus classification since decision #12) on suggested events. | SQLite via stdlib `sqlite3`, no ORM — `init_db()` creates the table if missing, `record_feedback()` writes one denormalized row (event snapshot + ranking score + like/dislike + classification) and returns its id. Scope narrowed from the original "cached events + profile + feedback" plan to feedback only — see decision #7. `get_all_feedback()` (Phase 10 step 3) added an internal read path for `classifier_module.feedback_model` to train on — there's still no HTTP `GET /feedback` (decision #7's reasoning still holds for that); the `sqlite3` CLI remains the way to inspect it by hand during development. |
+| `ui/` | A single-page UI for viewing this week's suggestions and giving feedback. | Static `index.html` (no build step), served by `api/main.py` via `StaticFiles` at `/ui`. Fetches `GET /suggestions` on load (shows a loading state, and the `503` `detail` message directly if the app isn't ready yet); shows gaps with no fitting events too, not just ones with suggestions (matches `scripts/check_suggestions.py`'s convention). Each suggestion's 👍/👎 buttons `fetch POST /feedback` using the event/score/classification already in hand (no extra request) and then disable themselves — `feedback_module.store` has no update path, so re-voting would just add a contradicting row. No server-side rendering, no new dependency. See decision #8. |
 
 ## Key architectural decisions
 
@@ -311,6 +317,19 @@ together.
       Covered by `tests/test_core.py`, including a test that specifically
       proves an event can be promoted past a cutoff it wouldn't have
       survived on cosine similarity alone.
+    - **Step 3.4 (this commit)**: manual verification script,
+      `scripts/check_feedback_model.py` — reports how much feedback is
+      currently recorded and whether that's enough to train on, and, if
+      so, prints each known segment's predicted P(liked) at a few
+      representative cosine_score values (decision #3's real-world
+      0.14-0.30 range), so the model's learned per-segment effect is
+      something to eyeball directly instead of trusting blindly. With
+      `feedback.db` freshly emptied (the pre-Phase-10 test data was
+      deleted, not migrated — see step 3.1), this currently reports "not
+      enough data yet" on real usage, which is itself the expected,
+      correctly-behaving result of the cold-start guard, not a gap in
+      testing. Phase 10 is complete as of this commit — see the roadmap
+      table below.
 
 ## Roadmap (high level)
 
@@ -325,7 +344,7 @@ together.
 | 7 | Persistence (SQLite) | Done — scope narrowed to feedback only, not profile/cached events too (see decision #7); `docs/er_diagram.mermaid` has its first real content |
 | 8 | Minimal UI | Done — static `ui/index.html` + `StaticFiles` at `/ui` (see decision #8) |
 | 9 | Deployment (Docker, local-only) + portfolio material | Done — see decision #9; `docker-compose.yml` verified end-to-end, README documents both run paths and carries screenshots |
-| 10 | Hardening (error handling, logging, feedback loop) | In progress — steps 1-2 done (decisions #10-11); feedback loop (step 3) 3.1-3.3 done, see decision #12 — the model is trained and wired into ranking; 3.4 (manual verification + milestone docs pass) next |
+| 10 | Hardening (error handling, logging, feedback loop) | Done — error handling (decision #10), logging (decision #11), feedback loop trained and wired into ranking with a manual verification script (decision #12, steps 3.1-3.4) |
 
 Each phase is broken into its own commits as it's implemented; the commit
 history is the source of truth for the actual sequence and timing.
