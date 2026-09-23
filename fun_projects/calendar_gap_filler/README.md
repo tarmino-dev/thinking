@@ -119,6 +119,16 @@ always has to go through the `uvicorn` path above (or the script directly) — t
 Docker path only works once `token.json` already exists, since nothing inside the
 container can open a browser for you.
 
+Create an empty file yourself before the first `docker compose up` so Docker mounts
+a file, not a directory:
+
+```bash
+touch feedback.db
+```
+
+If Docker already created the directory, remove it first (`docker compose down`,
+then `rm -rf feedback.db`) before running `touch`.
+
 Fetch this week's gaps and suggestions:
 
 ```bash
