@@ -84,16 +84,41 @@ first run needs an internet connection; later runs work offline.
 
 ## Running the API
 
-Once setup above is done, start the server from the project root — either
-directly with `uvicorn`, or via Docker:
+**First run — do this once, before starting the server any other way:** the API
+refuses to open an interactive browser login itself (it returns a `503` if
+`token.json` is missing rather than hanging the request), so `token.json` has to be
+created via a local CLI script first, regardless of whether you'll run the server
+directly or via Docker afterwards:
+
+```bash
+source venv/bin/activate
+PYTHONPATH=. python3 scripts/check_suggestions.py
+```
+
+This opens a browser, asks you to log in, and writes `token.json`.
+
+Once that's done, start the server from the project root — either directly with
+`uvicorn`:
 
 ```bash
 source venv/bin/activate
 uvicorn api.main:app --reload
 ```
 
+or via Docker:
+
 ```bash
 docker compose up --build
+```
+
+**Important:** on a fresh checkout, run `touch feedback.db` before starting Docker.
+Otherwise, Docker may create a directory named `feedback.db` instead of mounting the
+file. If that's already happened, fix it and retry:
+
+```bash
+docker compose down
+rm -rf feedback.db
+touch feedback.db
 ```
 
 Either way it listens on `http://127.0.0.1:8000` — the Docker path binds the
@@ -104,30 +129,6 @@ Stop it with `docker compose down`.
 Open **`http://127.0.0.1:8000/ui/`** in a browser for a simple page that shows this
 week's suggestions and lets you 👍/👎 each one — no curl needed. The rest of this
 section documents the underlying API directly, useful for debugging or scripting.
-
-**First run**: if `token.json` doesn't exist yet, complete the Google login once via
-a CLI script first, e.g.:
-
-```bash
-PYTHONPATH=. python3 scripts/check_suggestions.py
-```
-
-The API deliberately does *not* try to open the interactive browser login itself
-(see step 2.6 above) — it returns a `503` if `token.json` is missing instead of
-hanging the request while waiting for someone to log in. This means the first run
-always has to go through the `uvicorn` path above (or the script directly) — the
-Docker path only works once `token.json` already exists, since nothing inside the
-container can open a browser for you.
-
-Create an empty file yourself before the first `docker compose up` so Docker mounts
-a file, not a directory:
-
-```bash
-touch feedback.db
-```
-
-If Docker already created the directory, remove it first (`docker compose down`,
-then `rm -rf feedback.db`) before running `touch`.
 
 Fetch this week's gaps and suggestions:
 
