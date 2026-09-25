@@ -1,0 +1,223 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Calendar Gap Filler</title>
+<style>
+  :root { color-scheme: light dark; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+    max-width: 720px;
+    margin: 2rem auto;
+    padding: 0 1rem;
+    line-height: 1.4;
+  }
+  h1 { margin-bottom: 1.5rem; }
+  #status.error { color: #c0392b; }
+  .gap { margin-bottom: 2rem; }
+  .gap h2 {
+    font-size: 1.1rem;
+    border-bottom: 1px solid rgba(128, 128, 128, 0.3);
+    padding-bottom: 0.25rem;
+  }
+  .empty { color: #888; font-style: italic; }
+  .suggestion {
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    border-radius: 8px;
+    padding: 0.75rem 1rem;
+    margin: 0.75rem 0;
+  }
+  .suggestion-title { font-weight: 600; }
+  .suggestion-meta { color: #888; font-size: 0.9rem; margin-top: 0.15rem; }
+  .suggestion-description { margin-top: 0.5rem; font-size: 0.95rem; }
+  .suggestion-buttons { margin-top: 0.6rem; display: flex; align-items: center; gap: 0.5rem; }
+  .suggestion-buttons button {
+    font-size: 1.1rem;
+    padding: 0.25rem 0.6rem;
+    border-radius: 6px;
+    border: 1px solid rgba(128, 128, 128, 0.3);
+    background: none;
+    cursor: pointer;
+  }
+  .suggestion-buttons button:disabled { opacity: 0.5; cursor: default; }
+  .suggestion-buttons button.chosen { border-color: #4a90d9; background: rgba(74, 144, 217, 0.15); }
+  .feedback-note { font-size: 0.85rem; color: #888; }
+</style>
+</head>
+<body>
+  <h1>Calendar Gap Filler</h1>
+  <div id="status">Loading suggestions…</div>
+  <div id="gaps"></div>
+
+<script>
+(async function () {
+  const statusEl = document.getElementById("status");
+  const gapsEl = document.getElementById("gaps");
+
+  function formatTime(isoString) {
+    const date = new Date(isoString);
+    return date.toLocaleString(undefined, {
+      weekday: "short",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+    });
+  }
+
+  // Builds one suggestion card. event and score come straight from the
+  // GET /suggestions response and are resent as-is in the POST /feedback
+  // body — see decision #7 (feedback_module stores a full snapshot) and
+  // Phase 8's plan: no extra request is needed to look anything up.
+  function renderSuggestion(event, score) {
+    const card = document.createElement("div");
+    card.className = "suggestion";
+
+    const title = document.createElement("div");
+    title.className = "suggestion-title";
+    title.textContent = event.name;
+    card.appendChild(title);
+
+    const metaParts = [formatTime(event.start)];
+    if (event.venue_name) metaParts.push(event.venue_name);
+    if (event.classification) metaParts.push(event.classification);
+    const meta = document.createElement("div");
+    meta.className = "suggestion-meta";
+    meta.textContent = metaParts.join(" · ");
+    card.appendChild(meta);
+
+    if (event.description) {
+      const description = document.createElement("div");
+      description.className = "suggestion-description";
+      description.textContent = event.description;
+      card.appendChild(description);
+    }
+
+    const buttons = document.createElement("div");
+    buttons.className = "suggestion-buttons";
+
+    const likeButton = document.createElement("button");
+    likeButton.textContent = "👍";
+    likeButton.setAttribute("aria-label", "Like this suggestion");
+
+    const dislikeButton = document.createElement("button");
+    dislikeButton.textContent = "👎";
+    dislikeButton.setAttribute("aria-label", "Dislike this suggestion");
+
+    const note = document.createElement("span");
+    note.className = "feedback-note";
+
+    // Both buttons are disabled after one successful save (Развилка,
+    // confirmed): feedback_module.store only ever inserts, there's no
+    // update, so letting the user click again would just add a
+    // duplicate/contradicting row with no way to undo the first one.
+    async function sendFeedback(liked, clickedButton) {
+      likeButton.disabled = true;
+      dislikeButton.disabled = true;
+      note.textContent = "Saving…";
+
+      try {
+        const response = await fetch("/feedback", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            event_id: event.id,
+            event_name: event.name,
+            event_start: event.start,
+            score: score,
+            liked: liked,
+            // Phase 10 step 3 (decision #12): sent along so feedback-based
+            // ranking has a feature to train on later — event already has
+            // this from GET /suggestions, no extra request needed.
+            classification: event.classification,
+          }),
+        });
+
+        if (!response.ok) {
+          const body = await response.json().catch(() => ({}));
+          note.textContent = body.detail || `Failed to save (${response.status})`;
+          likeButton.disabled = false;
+          dislikeButton.disabled = false;
+          return;
+        }
+
+        clickedButton.classList.add("chosen");
+        note.textContent = liked ? "✓ Saved: liked" : "✓ Saved: disliked";
+      } catch (error) {
+        note.textContent = "Could not reach the server.";
+        likeButton.disabled = false;
+        dislikeButton.disabled = false;
+      }
+    }
+
+    likeButton.addEventListener("click", () => sendFeedback(true, likeButton));
+    dislikeButton.addEventListener("click", () => sendFeedback(false, dislikeButton));
+
+    buttons.appendChild(likeButton);
+    buttons.appendChild(dislikeButton);
+    buttons.appendChild(note);
+    card.appendChild(buttons);
+
+    return card;
+  }
+
+  // Renders one {gap, suggestions} entry from the GET /suggestions array.
+  // Gaps with no fitting suggestions are still shown (not hidden) — same
+  // convention scripts/check_suggestions.py already uses for this exact
+  // case ("(no fitting events)").
+  function renderGapEntry(entry) {
+    const section = document.createElement("section");
+    section.className = "gap";
+
+    const header = document.createElement("h2");
+    header.textContent = `${formatTime(entry.gap.start)} – ${formatTime(entry.gap.end)}`;
+    section.appendChild(header);
+
+    if (entry.suggestions.length === 0) {
+      const empty = document.createElement("p");
+      empty.className = "empty";
+      empty.textContent = "No fitting suggestions for this slot.";
+      section.appendChild(empty);
+    } else {
+      for (const ranked of entry.suggestions) {
+        section.appendChild(renderSuggestion(ranked.event, ranked.score));
+      }
+    }
+
+    return section;
+  }
+
+  try {
+    const response = await fetch("/suggestions");
+
+    if (!response.ok) {
+      // GET /suggestions returns 503 with a human-readable `detail` for
+      // every "not configured/authenticated yet" case (see api/main.py
+      // and architecture.md decision #1) — show that message directly
+      // instead of a generic "something went wrong".
+      const body = await response.json().catch(() => ({}));
+      statusEl.textContent = body.detail || `Request failed (${response.status})`;
+      statusEl.className = "error";
+      return;
+    }
+
+    const gapEntries = await response.json();
+    statusEl.remove();
+
+    if (gapEntries.length === 0) {
+      gapsEl.textContent = "No free time slots found for this week.";
+      return;
+    }
+
+    for (const entry of gapEntries) {
+      gapsEl.appendChild(renderGapEntry(entry));
+    }
+  } catch (error) {
+    statusEl.textContent = "Could not reach the server. Is uvicorn running?";
+    statusEl.className = "error";
+  }
+})();
+</script>
+</body>
+</html>

@@ -1,0 +1,7 @@
+# Project Name: Calendar Gap Filler
+# Core Concept: An AI-powered scheduling assistant that automatically identifies empty time slots in a user's calendar and populates them with personalized, locally relevant events based on interests, preferences, and real-time availability.
+
+## Tech Stack & Core Modules
+- Backend Language: Python 3.12.0
+- Machine Learning Component: Custom NLP Classifier built on a lightweight, optimized Transformer model (TinyBERT). It validates, filters, and ranks scraped local events against the user's specific interest profile and time constraints.
+- Deployment Goal: Fully deployed, production-ready live web application accessible via a public URL.

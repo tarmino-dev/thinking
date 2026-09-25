@@ -1,0 +1,19 @@
+google-api-python-client
+google-auth-httplib2
+google-auth-oauthlib
+pytest
+requests
+python-dotenv
+fastapi
+uvicorn
+scikit-learn  # Phase 10 step 3 (decision #12): LogisticRegression for feedback-based ranking
+httpx  # only actually used by fastapi.testclient.TestClient in tests/test_api_main.py
+# Pinned together deliberately: PyTorch dropped pip wheels for Intel macOS
+# (x86_64) after torch==2.2.2 (Jan 2024) — newer sentence-transformers /
+# transformers require torch>=2.5, which simply has no wheel for that
+# platform. This trio is a known-working combination from the torch 2.2.x
+# era. If you're not on Intel Mac, feel free to unpin and use latest.
+torch==2.2.2
+transformers==4.38.2
+sentence-transformers==2.5.1
+numpy<2

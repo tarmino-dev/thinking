@@ -1,0 +1,21 @@
+%% Calendar Gap Filler — data model
+%%
+%% Single table so far (Phase 7): user feedback on suggested events.
+%% No relationships yet, because no other data is persisted anywhere else
+%% in the app (see architecture.md decision #7) — the interest profile
+%% lives in profile.json and events are fetched fresh from Ticketmaster on
+%% every request, neither one cached or stored in this database. That's
+%% also why FEEDBACK denormalizes a full event snapshot instead of just an
+%% event_id: there's nothing else to join against to look one back up.
+
+erDiagram
+    FEEDBACK {
+        int id PK
+        string event_id "Ticketmaster event id; not a FK, no event cache exists to reference"
+        string event_name
+        string event_start "ISO 8601 datetime string"
+        float score "RankedEvent.score at the moment this event was shown"
+        boolean liked "stored as 0/1; true means the user liked the suggestion"
+        string classification "nullable; Event.classification, e.g. 'Music, Jazz, Vocal Jazz' — added Phase 10 step 3 (decision #12) as a feature for the feedback-based ranking model"
+        string created_at "ISO 8601 datetime string, set by SQLite's CURRENT_TIMESTAMP"
+    }

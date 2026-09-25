@@ -1,0 +1,30 @@
+# Personal data / secrets — these exist on disk in this working directory
+# (that's how the app runs locally at all), so this file is the only
+# thing stopping `COPY . .` from baking them into the image. Never remove
+# these lines without replacing them with something equally strict.
+.env
+credentials.json
+token.json
+profile.json
+feedback.db
+
+# Local dev / VCS cruft, not needed inside the image.
+venv/
+__pycache__/
+*.pyc
+.git/
+.pytest_cache/
+.DS_Store
+
+# Not needed at runtime.
+tests/
+docs/
+README.md
+project_idea_and_stack.txt
+Dockerfile
+.dockerignore
+.gitignore
+CLAUDE.md
+.env.example
+profile.example.json
+pytest.ini
