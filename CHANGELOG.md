@@ -1,5 +1,21 @@
 # Changelog
 
+## 2026-09-29
+
+### Features
+- **[fun_projects]** Add Calendar Gap Filler app with FastAPI `/suggestions` endpoint (#74)
+- **[fun_projects]** Add `POST /feedback` endpoint with sqlite feedback storage (#74)
+- **[fun_projects]** Add static web UI served at `/ui` (#74)
+- **[fun_projects]** Add trainable feedback-based ranking model for event suggestions (#74)
+- **[fun_projects]** Add Dockerfile and docker-compose for local deployment (#74)
+- **[fun_projects]** Add basic logging across the pipeline (#74)
+
+### Fixes
+- **[fun_projects]** Return 503 when token.json is missing or external APIs fail (#74)
+
+### Chores
+- **[fun_projects]** Add API tests and README/architecture docs for Calendar Gap Filler (#74)
+
 ## 2026-07-28
 
 ### Fixes
