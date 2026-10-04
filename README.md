@@ -21,9 +21,12 @@ Production-oriented projects. Each lives on its own deployment branch where note
 | **Image Upload API** | Cloud backend to upload, process (async), and store images, with JWT auth and automated deployment. | FastAPI · Celery · Redis · PostgreSQL · AWS S3 + RDS · JWT · Docker · GitHub Actions (deploy to EC2) | [Code](https://github.com/tarmino-dev/thinking/tree/image_upload_api/fun_projects/image_upload_api) · [README](fun_projects/image_upload_api/README.md) |
 | **ETL Vacancies Pipeline** | Containerized ETL pipeline (RAW → STAGING → MART) for job-vacancy data, orchestrated with Airflow. | Python · PostgreSQL · Apache Airflow · Docker Compose | [Code](https://github.com/tarmino-dev/thinking/tree/etl_vacancies/fun_projects/etl_vacancies) · [README](fun_projects/etl_vacancies/README.md) |
 | **RAG Pipeline** | Minimal Retrieval-Augmented Generation pipeline: embed documents, store in a vector index, retrieve, and generate with a local LLM. | Python · FAISS · Sentence Transformers · Ollama | [Code](https://github.com/tarmino-dev/thinking/tree/rag/fun_projects/rag) · [README](fun_projects/rag/README.md) |
+| **Calendar Gap Filler** | AI-powered scheduling assistant that finds empty slots in your Google Calendar and fills them with personalized, locally relevant events, ranked by an ML model and refined from your 👍/👎 feedback. | Python · FastAPI · Google Calendar API · Ticketmaster API · Sentence Transformers (TinyBERT) · scikit-learn · SQLite · Docker · pytest | [Code](https://github.com/tarmino-dev/thinking/tree/main/fun_projects/calendar_gap_filler) · [README](fun_projects/calendar_gap_filler/README.md) |
 
 > Note: Image Upload API is deployed on AWS EC2; a stable public URL is not linked yet
-> because the instance IP changes on restart.
+> because the instance IP changes on restart. Calendar Gap Filler is local-only by design
+> (it reads a personal Google Calendar and binds only to `127.0.0.1`), so there's no
+> hosted link.
 
 ---
 
@@ -66,6 +69,7 @@ fun_projects/
 ├── image_upload_api/        Image Upload API (main)
 ├── etl_vacancies/           ETL Pipeline (main)
 ├── rag/                     RAG Pipeline (main)
+├── calendar_gap_filler/     Calendar Gap Filler (main)
 ├── api/                     external-API mini-projects
 └── learning/                bootcamp exercises & experiments
 ```
