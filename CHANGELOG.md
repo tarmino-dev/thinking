@@ -1,5 +1,10 @@
 # Changelog
 
+## 2026-10-06
+
+### Chores
+- **[root]** Add Calendar Gap Filler to the root README (#75)
+
 ## 2026-09-29
 
 ### Features
